@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+    <device>
+        <deviceType>urn:schemas-upnp-org:device:X1BroadbandGateway:1</deviceType>
+        <friendlyName>short user-friendly title</friendlyName>
+        <manufacturer>manufacturer name</manufacturer>
+        <manufacturerURL>URL to manufacturer site</manufacturerURL>
+        <modelDescription>long user-friendly title</modelDescription>
+        <modelName>model name</modelName>
+        <modelNumber>model number</modelNumber>
+        <modelURL>URL to model site</modelURL>
+        <serialNumber>manufacturer's serial number</serialNumber>
+        <UDN>uuid:UUID</UDN>
+        <UPC>Universal Product Code</UPC>
+        <iconList>
+            <icon>
+                <mimetype>image/format</mimetype>
+                <width>horizontal pixels</width>
+                <height>vertical pixels</height>
+                <depth>color depth</depth>
+                <url>URL to icon</url>
+            </icon>
+            XML to declare other icons, if any, go here
+        </iconList>
+        <serviceList>
+            <service>
+                <serviceType>urn:schemas-upnp-org:service:X1Identity:1</serviceType>
+                <serviceId>urn:upnp-org:serviceId:X1Identity:1</serviceId>
+                <SCPDURL>/X1Identity.xml</SCPDURL>
+                <controlURL>/X1Identity/Control</controlURL>
+                <eventSubURL>/X1Identity/Event</eventSubURL>
+            </service>
+            <service>
+                <serviceType>urn:schemas-upnp-org:service:X1Time:1</serviceType>
+                <serviceId>urn:upnp-org:serviceId:X1Time:1</serviceId>
+                <SCPDURL>/X1Time.xml</SCPDURL>
+                <controlURL>/X1Time/Control</controlURL>
+                <eventSubURL>/X1Time/Event</eventSubURL>
+            </service>
+            <service>
+                <serviceType>urn:schemas-upnp-org:service:X1GatewayConfiguration:1</serviceType>
+                <serviceId>urn:upnp-org:serviceId:X1GatewayConfiguration:1</serviceId>
+                <SCPDURL>/X1GatewayConfiguration.xml</SCPDURL>
+                <controlURL>/X1GatewayConfiguration/Control</controlURL>
+                <eventSubURL>/X1GatewayConfiguration/Event</eventSubURL>
+            </service>
+        </serviceList>
+    </device>
+</root>
+

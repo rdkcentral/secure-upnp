@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+
+    <actionList>
+        <action>
+            <name>GetBaseUrl</name>
+            <argumentList>
+                <argument>
+                    <name>BaseUrl</name>
+                    <relatedStateVariable>Url</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetPlaybackUrl</name>
+            <argumentList>
+                <argument>
+                    <name>PlaybackUrl</name>
+                    <relatedStateVariable>PlaybackUrl</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetFogTsbUrl</name>
+            <argumentList>
+                <argument>
+                    <name>FogTsbUrl</name>
+                    <relatedStateVariable>FogTsbUrl</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+    </actionList>
+    <serviceStateTable>
+        <stateVariable sendEvents="yes">
+            <name>Url</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>BaseUrl</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>PlaybackUrl</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>FogTsbUrl</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+    </serviceStateTable>
+</scpd>
+

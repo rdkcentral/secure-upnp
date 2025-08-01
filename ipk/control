@@ -1,0 +1,12 @@
+Package: xupnp
+Version: 1.99+git0+16a833b8d4_4cce289bde-r0.0
+Description: Device Activation- Pace xi3 specific files
+ Device Activation- Pace xi3 specific files.
+Section: console/utils
+Priority: optional
+Maintainer: CPE SI Yocto Team <CCP_CPESI-YOCTO@cable.comcast.com>
+License: CLOSED
+Architecture: mips32el
+OE: xupnp
+Depends: libgssdp-1.0-3 (>= 0.14.10), libxml2 (>= 2.9.1), libsoup-2.4 (>= 2.45.3), fcgi (>= 2.4.0), libgupnp-1.0-4 (>= 0.19.4), libc6 (>= 2.19), libglib-2.0-0 (>= 2.38.2), libuuid1 (>= 2.24.1), iarmbus (>= 1.99+git0+2657461332)
+Source: git://gerrit.teamccp.com:29418/rdk/components/generic/xupnp/generic;protocol=ssh;branch=master;name=xupnp git://gerrit.teamccp.com:29418/rdk/components/generic/xupnp/devices/pace/pace_xi3;protocol=ssh;branch=master;destsuffix=git/deviceconf;name=deviceconf

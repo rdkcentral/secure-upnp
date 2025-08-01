@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+
+    <actionList>
+        <action>
+            <name>GetDataGatewayIPaddress</name>
+            <argumentList>
+                <argument>
+                    <name>DataGatewayIPaddress</name>
+                    <relatedStateVariable>DataGatewayIPaddress</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetGatewayStbIP</name>
+            <argumentList>
+                <argument>
+                    <name>GatewayStbIP</name>
+                    <relatedStateVariable>GatewayStbIP</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetIpv6Prefix</name>
+            <argumentList>
+                <argument>
+                    <name>Ipv6Prefix</name>
+                    <relatedStateVariable>Ipv6Prefix</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetDeviceName</name>
+            <argumentList>
+                <argument>
+                    <name>DeviceName</name>
+                    <relatedStateVariable>DeviceName</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetGatewayIPv6</name>
+            <argumentList>
+                <argument>
+                    <name>GatewayIPv6</name>
+                    <relatedStateVariable>GatewayIPv6</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetGatewayIP</name>
+            <argumentList>
+                <argument>
+                    <name>GatewayIP</name>
+                    <relatedStateVariable>GatewayIP</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetHostMacAddress</name>
+            <argumentList>
+                <argument>
+                    <name>HostMacAddress</name>
+                    <relatedStateVariable>HostMacAddress</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetDnsConfig</name>
+            <argumentList>
+                <argument>
+                    <name>DnsConfig</name>
+                    <relatedStateVariable>DnsConfig</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetHosts</name>
+            <argumentList>
+                <argument>
+                    <name>Hosts</name>
+                    <relatedStateVariable>Hosts</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetIsGateway</name>
+            <argumentList>
+                <argument>
+                    <name>IsGateway</name>
+                    <relatedStateVariable>IsGateway</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetIPSubNet</name>
+            <argumentList>
+                <argument>
+                    <name>IPSubNet</name>
+                    <relatedStateVariable>IPSubNet</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+    </actionList>
+    <serviceStateTable>
+        <stateVariable sendEvents="yes">
+            <name>GatewayIP</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>FogTsbUrl</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>DataGatewayIPaddress</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>GatewayIPv6</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>GatewayStbIP</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>Ipv6Prefix</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>DeviceName</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>HostMacAddress</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>DnsConfig</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>Hosts</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>IsGateway</name>
+            <dataType>boolean</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>IPSubNet</name>
+            <dataType>string</dataType>
+            <defaultValue>"10.0.0.0/8"</defaultValue>
+        </stateVariable>
+    </serviceStateTable>
+</scpd>
+

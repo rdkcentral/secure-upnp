@@ -1,0 +1,188 @@
+#!/bin/bash
+##########################################################################
+# If not stated otherwise in this file or this component's Licenses.txt
+# file the following copyright and licenses apply:
+#
+# Copyright 2018 RDK Management
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##########################################################################
+
+#######################################
+#
+# Build Framework standard script for
+#
+# xupnp component
+
+# use -e to fail on any shell issue
+# -e is the requirement from Build Framework
+set -xe
+
+
+# default PATHs - use `man readlink` for more info
+# the path to combined build
+export RDK_PROJECT_ROOT_PATH=${RDK_PROJECT_ROOT_PATH-`readlink -m ../../..`}
+export COMBINED_ROOT=$RDK_PROJECT_ROOT_PATH
+
+# path to build script (this script)
+export RDK_SCRIPTS_PATH=${RDK_SCRIPTS_PATH-`readlink -m $0 | xargs dirname`}
+
+# path to components sources and target
+export RDK_SOURCE_PATH=${RDK_SOURCE_PATH-$RDK_SCRIPTS_PATH}
+export RDK_TARGET_PATH=${RDK_TARGET_PATH-$RDK_SOURCE_PATH/..}
+
+# fsroot and toolchain (valid for all devices)
+export RDK_FSROOT_PATH=${RDK_FSROOT_PATH-`readlink -m $RDK_PROJECT_ROOT_PATH/sdk/fsroot/ramdisk`}
+export RDK_TOOLCHAIN_PATH=${RDK_TOOLCHAIN_PATH-`readlink -m $RDK_PROJECT_ROOT_PATH/sdk/toolchain/staging_dir`}
+
+
+# default component name
+export RDK_COMPONENT_NAME=${RDK_COMPONENT_NAME-xupnp}
+source $RDK_PROJECT_ROOT_PATH/$RDK_COMPONENT_NAME/soc/$RDK_PLATFORM_SOC/soc_env.sh
+
+export CONF_PATH=${RDK_FSROOT_PATH}/etc/xupnp
+
+# parse arguments
+INITIAL_ARGS=$@
+
+function usage()
+{
+    set +x
+    echo "Usage: `basename $0` [-h|--help] [-v|--verbose] [--platform-soc] [action]"
+    echo "    -h    --help                  : this help"
+    echo "    -v    --verbose               : verbose output"
+    echo "    --platform-soc  =PLATFORM     : specify platform for xupnp"
+    echo
+    echo "Supported actions:"
+    echo "      configure, clean, build (DEFAULT), rebuild, install"
+}
+
+# options may be followed by one colon to indicate they have a required argument
+if ! GETOPT=$(getopt -n "build.sh" -o hvp: -l help,verbose,platform-soc: -- "$@")
+then
+    usage
+    exit 1
+fi
+
+eval set -- "$GETOPT"
+
+while true; do
+  case "$1" in
+    -h | --help ) usage; exit 0 ;;
+    -v | --verbose ) set -x ;;
+    --platform-soc ) export RDK_PLATFORM_SOC="$2" ; shift ;;
+    -- ) shift; break;;
+    * ) break;;
+  esac
+  shift
+done
+
+ARGS=$@
+
+
+# component-specific vars
+if [ -z "$RDK_PLATFORM_SOC" ]; then
+    usage
+    echo "RDK_PLATFORM_SOC must be provided"
+    exit 1
+fi
+
+# functional modules
+declare -f configure > /dev/null || function configure()
+{
+    pd=`pwd`
+    cd $RDK_TARGET_PATH
+    aclocal -I cfg
+    libtoolize --automake
+    autoheader
+    automake --foreign --add-missing
+    rm -f configure
+    autoconf
+    echo "  CONFIG_MODE = $CONFIG_MODE"
+    configure_options=" "
+    if [ "x$DEFAULT_HOST" != "x" ]; then
+        configure_options="--host $DEFAULT_HOST"
+    fi
+
+    if [ "$RDK_PLATFORM_DEVICE" == "rng150" ];then
+        configure_options="$configure_options --enable-shared --with-pic --enable-gupnp_latest --enable-iarmbus --enable-dbus"
+    else
+        configure_options="$configure_options --enable-shared --with-pic --disable-gupnp_latest --enable-iarmbus --enable-dbus"
+    fi
+
+    export ac_cv_func_malloc_0_nonnull=yes
+    export ac_cv_func_memset=yes
+    ./configure --prefix=${RDK_FSROOT_PATH}/usr/local --sysconfdir=$CONF_PATH $configure_options
+	cd $pd
+}
+
+declare -f clean > /dev/null || function clean()
+{
+    pd=`pwd`
+    cd $RDK_TARGET_PATH
+    make distclean
+    cd $pd
+}
+
+declare -f build > /dev/null || function build()
+{
+    pd=`pwd`
+    cd $RDK_TARGET_PATH
+    make 
+    cd $pd
+}
+
+declare -f rebuild > /dev/null || function rebuild()
+{
+    clean
+    configure
+    build
+}
+
+declare -f install > /dev/null || function install()
+{
+    pd=`pwd`
+    cd ${RDK_TARGET_PATH}
+    make install
+
+    conffiles=$(ls ${RDK_TARGET_PATH}/../conf/xd* 2> /dev/null | wc -l)
+    if [ "$conffiles" != "0" ]; then
+        cp ../conf/xd*.conf ${CONF_PATH}
+    fi
+
+    cd $pd
+}
+
+
+# run the logic
+
+#these args are what left untouched after parse_args
+HIT=false
+
+for i in "$ARGS"; do
+    case $i in
+        configure)  HIT=true; configure ;;
+        clean)      HIT=true; clean ;;
+        build)      HIT=true; build ;;
+        rebuild)    HIT=true; rebuild ;;
+        install)    HIT=true; install ;;
+        *)
+            #skip unknown
+        ;;
+    esac
+done
+
+# if not HIT do build by default
+if ! $HIT; then
+  build
+fi

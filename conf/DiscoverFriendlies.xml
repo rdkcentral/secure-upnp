@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ If not stated otherwise in this file or this component's Licenses.txt file the
+ following copyright and licenses apply:
+
+ Copyright 2016 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <actionList>
+    <action>
+      <name>GetBaseUrl</name>
+      <argumentList>
+        <argument>
+          <name>BaseUrl</name>
+          <relatedStateVariable>Url</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetBaseTrmUrl</name>
+      <argumentList>
+        <argument>
+          <name>BaseTrmUrl</name>
+          <relatedStateVariable>TrmUrl</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetPlaybackUrl</name>
+      <argumentList>
+        <argument>
+          <name>PlaybackUrl</name>
+          <relatedStateVariable>PlaybackUrl</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetFogTsbUrl</name>
+      <argumentList>
+        <argument>
+          <name>FogTsbUrl</name>
+          <relatedStateVariable>FogTsbUrl</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetDataGatewayIPaddress</name>
+      <argumentList>
+        <argument>
+          <name>DataGatewayIPaddress</name>
+          <relatedStateVariable>DataGatewayIPaddress</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetGatewayStbIP</name>
+      <argumentList>
+        <argument>
+          <name>GatewayStbIP</name>
+          <relatedStateVariable>GatewayStbIP</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetIpv6Prefix</name>
+      <argumentList>
+        <argument>
+          <name>Ipv6Prefix</name>
+          <relatedStateVariable>Ipv6Prefix</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetDeviceName</name>
+      <argumentList>
+        <argument>
+          <name>DeviceName</name>
+          <relatedStateVariable>DeviceName</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetBcastMacAddress</name>
+      <argumentList>
+        <argument>
+          <name>BcastMacAddress</name>
+          <relatedStateVariable>BcastMacAddress</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetGatewayIPv6</name>
+      <argumentList>
+        <argument>
+          <name>GatewayIPv6</name>
+          <relatedStateVariable>GatewayIPv6</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetGatewayIP</name>
+      <argumentList>
+        <argument>
+          <name>GatewayIP</name>
+          <relatedStateVariable>GatewayIP</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+        <action>
+      <name>GetRecvDevType</name>
+      <argumentList>
+        <argument>
+          <name>RecvDevType</name>
+          <relatedStateVariable>RecvDevType</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>    
+      <name>GetBuildVersion</name>
+      <argumentList>
+        <argument>
+          <name>BuildVersion</name>
+          <relatedStateVariable>BuildVersion</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+        <action>    
+      <name>GetDeviceType</name>
+      <argumentList>
+        <argument>
+          <name>DeviceType</name>
+          <relatedStateVariable>DeviceName</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetHostMacAddress</name>
+      <argumentList>
+        <argument>
+          <name>HostMacAddress</name>
+          <relatedStateVariable>HostMacAddress</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+	<action>
+      <name>GetDnsConfig</name>
+      <argumentList>
+        <argument>
+          <name>DnsConfig</name>
+          <relatedStateVariable>DnsConfig</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+	<action>
+      <name>GetSystemIds</name>
+      <argumentList>
+        <argument>
+          <name>SystemIds</name>
+          <relatedStateVariable>SystemIds</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+	<action>
+      <name>GetTimeZone</name>
+      <argumentList>
+        <argument>
+          <name>TimeZone</name>
+          <relatedStateVariable>TimeZone</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+        <action>
+      <name>GetRawOffSet</name>
+      <argumentList>
+        <argument>
+          <name>RawOffSet</name>
+          <relatedStateVariable>RawOffSet</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+
+<action>
+      <name>GetDSTSavings</name>
+      <argumentList>
+        <argument>
+          <name>DSTSavings</name>
+          <relatedStateVariable>DSTSavings</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+
+<action>
+      <name>GetUsesDaylightTime</name>
+      <argumentList>
+        <argument>
+          <name>UsesDaylightTime</name>
+          <relatedStateVariable>UsesDaylightTime</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+
+<action>
+      <name>GetDSTOffset</name>
+      <argumentList>
+        <argument>
+          <name>DSTOffset</name>
+          <relatedStateVariable>DSTOffset</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+	<action>
+      <name>GetHosts</name>
+      <argumentList>
+        <argument>
+          <name>Hosts</name>
+          <relatedStateVariable>Hosts</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+	</action>
+    <action>
+      <name>GetIsGateway</name>
+      <argumentList>
+        <argument>
+          <name>IsGateway</name>
+          <relatedStateVariable>IsGateway</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetRequiresTRM</name>
+      <argumentList>
+        <argument>
+          <name>RequiresTRM</name>
+          <relatedStateVariable>RequiresTRM</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetVideoBaseUrl</name>
+      <argumentList>
+        <argument>
+          <name>VideoBaseUrl</name>
+          <relatedStateVariable>VideoBaseUrl</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+    <action>
+      <name>GetClientIP</name>
+      <argumentList>
+        <argument>
+          <name>ClientIP</name>
+          <relatedStateVariable>ClientIP</relatedStateVariable>
+          <direction>out</direction>
+        </argument>
+      </argumentList>
+    </action>
+  </actionList>
+  <serviceStateTable>
+    <stateVariable sendEvents="yes">
+      <name>Url</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>TrmUrl</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>PlaybackUrl</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>GatewayIP</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>FogTsbUrl</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>DataGatewayIPaddress</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>GatewayIPv6</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>BcastMacAddress</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>GatewayStbIP</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>Ipv6Prefix</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>DeviceName</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>HostMacAddress</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>DnsConfig</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>SystemIds</name>
+      <dataType>string</dataType>
+      <defaultValue>null</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>TimeZone</name>
+      <dataType>string</dataType>
+      <defaultValue>null</defaultValue>
+    </stateVariable>               
+    <stateVariable sendEvents="yes">
+      <name>RawOffSet</name>
+      <dataType>int</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>DSTSavings</name>
+      <dataType>int</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>RawOffSet</name>
+      <dataType>int</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>DSTSavings</name>
+      <dataType>int</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>UsesDaylightTime</name>
+      <dataType>boolean</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>DSTOffset</name>
+      <dataType>int</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>RecvDevType</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>BuildVersion</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>DeviceType</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>Hosts</name>
+      <dataType>string</dataType>
+      <defaultValue>null</defaultValue>
+    </stateVariable>               
+    <stateVariable sendEvents="yes">
+      <name>IsGateway</name>
+      <dataType>boolean</dataType>
+      <defaultValue>0</defaultValue>
+    </stateVariable>   
+    <stateVariable sendEvents="yes">
+      <name>RequiresTRM</name>
+      <dataType>boolean</dataType>
+      <defaultValue>1</defaultValue>
+    </stateVariable>   
+    <stateVariable sendEvents="yes">
+      <name>VideoBaseUrl</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+    <stateVariable sendEvents="yes">
+      <name>ClientIP</name>
+      <dataType>string</dataType>
+      <defaultValue>NoData</defaultValue>
+    </stateVariable>
+  </serviceStateTable>
+</scpd>

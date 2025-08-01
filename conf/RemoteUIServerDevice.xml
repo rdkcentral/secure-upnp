@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ If not stated otherwise in this file or this component's Licenses.txt file the
+ following copyright and licenses apply:
+
+ Copyright 2016 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:RemoteUIServerDevice:1</deviceType>
+    <friendlyName>XFINITY</friendlyName>
+    <manufacturer>Pace</manufacturer>
+    <modelName>XG-1</modelName>
+	<modelNumber>PX001AN</modelNumber>
+	<serialNumber>sno</serialNumber>
+    <UPC></UPC>
+    <UDN></UDN>
+    <dlna:X_DLNADOC xmlns:dlna="urn:schemas-dlna-org:device-1-0">+RUIHSRC+/DMS-1.50</dlna:X_DLNADOC>
+    <serviceList>
+	  <service>
+        <serviceType>urn:schemas-upnp-org:service:RemoteUIServer:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:RemoteUIServer1</serviceId>
+        <SCPDURL>/RemoteUIServer.xml</SCPDURL>
+        <controlURL>/RemoteUIServer/Control</controlURL>
+        <eventSubURL>/RemoteUIServer/Event</eventSubURL>
+      </service>
+    </serviceList>
+  </device>
+</root>

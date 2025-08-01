@@ -1,0 +1,67 @@
+#!/bin/sh
+##########################################################################
+# If not stated otherwise in this file or this component's Licenses.txt
+# file the following copyright and licenses apply:
+#
+# Copyright 2016 RDK Management
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##########################################################################
+# only for use as a "zcip" callback script
+if [ "x$interface" = x ]
+then
+        exit 1
+fi
+
+# zcip should start on boot/resume and various media changes
+case "$1" in
+init)
+        # for now, zcip requires the link to be already up,
+        # and it drops links when they go down.  that isn't
+        # the most robust model...
+        exit 0
+        ;;
+config)
+        if [ "x$ip" = x ]
+        then
+                exit 1
+        fi
+        # remember $ip for $interface, to use on restart
+        if [ ! -f /etc/os-release ]; then
+                if [ "x$IP" != x -a -w "$IP.$interface" ]
+                then
+                        echo $ip > "$IP.$interface"
+                fi
+        else
+                if [ ! -f /opt/ip.$interface ]; then
+                        echo $ip > /opt/ip.$interface
+                else
+                        if [ "x$ip" != "x`cat /opt/ip.$interface`" ]
+                        then
+                                echo $ip > /opt/ip.$interface
+                        fi
+                fi
+        fi
+#       exec ip address add dev $interface label $interface:0 \
+#               scope link local "$ip/16" broadcast +
+        exec ifconfig $interface:0 $ip netmask 255.255.0.0
+        ;;
+deconfig)
+        if [ x$ip = x ]
+        then
+                exit 1
+        fi
+        exec ip address del dev $interface local $ip
+        ;;
+esac
+exit 1

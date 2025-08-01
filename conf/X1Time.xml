@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+
+    <actionList>
+        <action>
+            <name>GetTimeZone</name>
+            <argumentList>
+                <argument>
+                    <name>TimeZone</name>
+                    <relatedStateVariable>TimeZone</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetRawOffSet</name>
+            <argumentList>
+                <argument>
+                    <name>RawOffSet</name>
+                    <relatedStateVariable>RawOffSet</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetDSTSavings</name>
+            <argumentList>
+                <argument>
+                    <name>DSTSavings</name>
+                    <relatedStateVariable>DSTSavings</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetUsesDaylightTime</name>
+            <argumentList>
+                <argument>
+                    <name>UsesDaylightTime</name>
+                    <relatedStateVariable>UsesDaylightTime</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetDSTOffset</name>
+            <argumentList>
+                <argument>
+                    <name>DSTOffset</name>
+                    <relatedStateVariable>DSTOffset</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+    </actionList>
+    <serviceStateTable>
+        <stateVariable sendEvents="yes">
+            <name>TimeZone</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>RawOffSet</name>
+            <dataType>int</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>DSTSavings</name>
+            <dataType>int</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>UsesDaylightTime</name>
+            <dataType>boolean</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>DSTOffset</name>
+            <dataType>int</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+    </serviceStateTable>
+</scpd>
+

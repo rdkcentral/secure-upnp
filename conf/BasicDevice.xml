@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ If not stated otherwise in this file or this component's Licenses.txt file the
+ following copyright and licenses apply:
+
+ Copyright 2016 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>1</minor>
+  </specVersion>
+
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:BasicDevice:1</deviceType>
+    <UPC></UPC>
+    <friendlyName>XfinityMediaGateway</friendlyName>
+    <manufacturer>Pace</manufacturer>
+    <modelName>XG-1</modelName>
+	<modelNumber>PX001AN</modelNumber>
+	<serialNumber>sno</serialNumber>
+    <UDN>uuid:</UDN>
+    <serviceList>
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:DiscoverFriendlies:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:DiscoverFriendlies:1</serviceId>
+        <SCPDURL>/DiscoverFriendlies.xml</SCPDURL>
+        <controlURL>/DiscoverFriendlies/Control</controlURL>
+        <eventSubURL>/DiscoverFriendlies/Event</eventSubURL>
+      </service>
+    </serviceList>
+  </device>
+</root>

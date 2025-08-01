@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+    <actionList>
+        <action>
+            <name>GetAccountId</name>
+            <argumentList>
+                <argument>
+                    <name>AccountId</name>
+                    <relatedStateVariable>AccountId</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetClientIP</name>
+            <argumentList>
+                <argument>
+                    <name>ClientIP</name>
+                    <relatedStateVariable>ClientIP</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetBcastMacAddress</name>
+            <argumentList>
+                <argument>
+                    <name>BcastMacAddress</name>
+                    <relatedStateVariable>BcastMacAddress</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+      <action>
+            <name>GetGatewayIPv6</name>
+            <argumentList>
+                <argument>
+                    <name>GatewayIPv6</name>
+                    <relatedStateVariable>GatewayIPv6</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+</actionList>
+<serviceStateTable>
+        <stateVariable sendEvents="yes">
+            <name>AccountId</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>ClientIP</name>
+            <dataType>string</dataType>
+            <defaultValue>NoData</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>BcastMacAddress</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>GatewayIPv6</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+    </serviceStateTable>
+</scpd>

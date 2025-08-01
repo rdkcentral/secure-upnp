@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scpd xmlns="urn:schemas-upnp-org:service-1-0">
+
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+
+    <actionList>
+        <action>
+            <name>GetBaseTrmUrl</name>
+            <argumentList>
+                <argument>
+                    <name>BaseTrmUrl</name>
+                    <relatedStateVariable>TrmUrl</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetSystemIds</name>
+            <argumentList>
+                <argument>
+                    <name>SystemIds</name>
+                    <relatedStateVariable>SystemIds</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetRequiresTRM</name>
+            <argumentList>
+                <argument>
+                    <name>RequiresTRM</name>
+                    <relatedStateVariable>RequiresTRM</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+        <action>
+            <name>GetVideoBaseUrl</name>
+            <argumentList>
+                <argument>
+                    <name>VideoBaseUrl</name>
+                    <relatedStateVariable>VideoBaseUrl</relatedStateVariable>
+                    <direction>out</direction>
+                </argument>
+            </argumentList>
+        </action>
+    </actionList>
+    <serviceStateTable>
+        <stateVariable sendEvents="yes">
+            <name>TrmUrl</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>SystemIds</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+            <name>RequiresTRM</name>
+            <dataType>boolean</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+		<stateVariable sendEvents="yes">
+            <name>VideoBaseUrl</name>
+            <dataType>string</dataType>
+            <defaultValue></defaultValue>
+        </stateVariable>
+    </serviceStateTable>
+</scpd>
+

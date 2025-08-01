@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+    <device>
+        <deviceType>urn:schemas-upnp-org:device:X1Renderer:1</deviceType>
+        <friendlyName>XFINITY</friendlyName>
+        <manufacturer>manufacturer name</manufacturer>
+        <manufacturerURL>URL to manufacturer site</manufacturerURL>
+        <modelDescription>long user-friendly title</modelDescription>
+        <modelName>model name</modelName>
+        <modelNumber>model number</modelNumber>
+        <modelURL>URL to model site</modelURL>
+        <serialNumber>PAW400005329</serialNumber>
+        <UDN>uuid:4108d3f5-15d8-4968-9a75-fae6286c507c</UDN>
+        <UPC>Universal Product Code</UPC>
+        <iconList>
+            <icon>
+                <mimetype>image/format</mimetype>
+                <width>horizontal pixels</width>
+                <height>vertical pixels</height>
+                <depth>color depth</depth>
+                <url>URL to icon</url>
+            </icon>
+            XML to declare other icons, if any, go here
+        </iconList>
+        <serviceList>
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:X1Identity:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:X1Identity:1</serviceId>
+        <SCPDURL>/X1Identity.xml</SCPDURL>
+        <controlURL>/X1Identity/Control</controlURL>
+        <eventSubURL>/X1Identity/Event</eventSubURL>
+      </service>
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:X1MediaConfiguration:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:X1MediaConfiguration:1</serviceId>
+        <SCPDURL>/X1MediaConfiguration.xml</SCPDURL>
+        <controlURL>/X1MediaConfiguration/Control</controlURL>
+        <eventSubURL>/X1MediaConfiguration/Event</eventSubURL>
+     </service>
+    </serviceList>
+    </device>
+</root>
