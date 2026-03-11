@@ -725,19 +725,11 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                         }
                         if(valid_account==1)
                         {
-                            g_message("Discovered device AccountId is valid");
-                            if(g_strcmp0(g_strstrip(accountId),temp)==0)
-                            {
-                                g_mutex_lock(mutex);
-                                xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
-                                g_mutex_unlock(mutex);
-                                g_message("Inserted new/updated device %s in the list as accountId %s is same", sno,temp);
-                                callback(&di,1,1);
-                            }
-                            else
-                            {
-                                g_message("Not adding to the list as accountId %s is different",temp);
-                            }
+                            g_message("Discovered device AccountId is valid, associating device %s accountId=%s", sno, temp);
+                            g_mutex_lock(mutex);
+                            xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
+                            g_mutex_unlock(mutex);
+                            callback(&di,1,1);
                         }
                         else
                         {

@@ -17,6 +17,7 @@
  * limitations under the License.
 */
 #include <libgupnp/gupnp.h>
+#include <libsoup/soup.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <gmodule.h>
@@ -65,6 +66,11 @@ extern char caFile[SSL_FILE_LEN];
 #ifdef ENABLE_HW_CERT_USAGE
 extern char se_cert_p12[SSL_FILE_LEN];
 #endif
+/* caller IP captured in request-started signal, used in get_account_id_cb.
+ * 64 bytes: safely holds IPv4 (max 15) and IPv6 (max 45) addresses. */
+static char last_caller_ip[64];
+/* TLS interaction type defined in idm_client.c */
+extern GType xupnp_tls_interaction_get_type(void);
 
 BOOL check_empty_idm(char *str)
 {
@@ -79,6 +85,122 @@ bool check_null_idm(char *str)
         return true;
     }
     return false;
+}
+
+/* Capture remote caller IP before action dispatch */
+static void
+idm_request_started_cb (SoupServer *server, SoupMessage *msg,
+                        SoupClientContext *client, gpointer user_data)
+{
+    const char *host = soup_client_context_get_host (client);
+    if (host) {
+        strncpy (last_caller_ip, host, sizeof (last_caller_ip) - 1);
+        last_caller_ip[sizeof (last_caller_ip) - 1] = '\0';
+        g_message ("idm_request_started_cb: captured caller IP = %s", last_caller_ip);
+    } else {
+        g_message ("idm_request_started_cb: WARNING get_host returned NULL, clearing last_caller_ip");
+        last_caller_ip[0] = '\0';
+    }
+}
+
+/* Make a synchronous GetAccountId SOAP call to the peer at peer_ip.
+ * Returns TRUE and fills out_id on success; FALSE otherwise. */
+static gboolean
+fetch_peer_account_id (const char *peer_ip, char *out_id, gsize out_id_size)
+{
+    gboolean ret = FALSE;
+    char control_url[256];
+    snprintf (control_url, sizeof (control_url),
+              "https://%s:%d/X1IDM_DP/Control", peer_ip, DEVICE_PROTECTION_CONTEXT_PORT);
+
+    g_message ("fetch_peer_account_id: caFile=%s certFile=%s keyFile=%s",
+               caFile[0]   ? caFile   : "(empty)",
+               certFile[0] ? certFile : "(empty)",
+               keyFile[0]  ? keyFile  : "(empty)");
+
+    /* Create TLS interaction then unref: session takes its own internal ref.
+     * Omitting this unref would leak one XupnpTlsInteraction per GetAccountId call. */
+    GTlsInteraction *tls_interaction = g_object_new (xupnp_tls_interaction_get_type (), NULL);
+    SoupSession *session = soup_session_sync_new_with_options (
+        SOUP_SESSION_SSL_CA_FILE,    caFile,
+        SOUP_SESSION_SSL_STRICT,     TRUE,
+        SOUP_SESSION_TLS_INTERACTION, tls_interaction,
+        NULL);
+    g_object_unref (tls_interaction);  /* release our ref; session holds its own */
+    if (!session) {
+        g_message ("fetch_peer_account_id: failed to create SoupSession");
+        return FALSE;
+    }
+
+    /* Build SOAP envelope */
+    const char *soap_body =
+        "<?xml version=\"1.0\"?>"
+        "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\""
+        " s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+        "<s:Body>"
+        "<u:GetAccountId xmlns:u=\"urn:schemas-upnp-org:service:X1IDM_DP:1\"/>"
+        "</s:Body>"
+        "</s:Envelope>";
+
+    SoupMessage *msg = soup_message_new ("POST", control_url);
+    if (!msg) {
+        g_message ("fetch_peer_account_id: failed to create SoupMessage for %s", control_url);
+        g_object_unref (session);
+        return FALSE;
+    }
+    soup_message_headers_append (msg->request_headers,
+                                 "SOAPAction",
+                                 "\"urn:schemas-upnp-org:service:X1IDM_DP:1#GetAccountId\"");
+    /* Mark this as a direct fetch so the peer does not loop back */
+    soup_message_headers_append (msg->request_headers, "X-IDM-Direct-Fetch", "1");
+    soup_message_set_request (msg, "text/xml; charset=\"utf-8\"",
+                              SOUP_MEMORY_STATIC,
+                              soap_body, strlen (soap_body));
+
+    g_message ("fetch_peer_account_id: sending SOAP POST to %s (blocks until response)", control_url);
+    guint status = soup_session_send_message (session, msg);
+    g_message ("fetch_peer_account_id: HTTP status=%u from %s", status, control_url);
+
+    if (SOUP_STATUS_IS_SUCCESSFUL (status)) {
+        const char *resp = msg->response_body->data;
+        goffset resp_len  = msg->response_body->length;
+        g_message ("fetch_peer_account_id: response body [%lld bytes]: %.*s",
+                   (long long)resp_len,
+                   (int)(resp_len < 512 ? resp_len : 512),
+                   resp ? resp : "(null)");
+        if (resp) {
+            const char *tag_open  = "<AccountId>";
+            const char *tag_close = "</AccountId>";
+            const char *start = strstr (resp, tag_open);
+            const char *end   = start ? strstr (start, tag_close) : NULL;
+            if (start && end) {
+                start += strlen (tag_open);
+                gsize len = (gsize)(end - start);
+                g_message ("fetch_peer_account_id: found <AccountId> tag, value len=%u", (unsigned)len);
+                if (len > 0 && len < out_id_size) {
+                    memcpy (out_id, start, len);
+                    out_id[len] = '\0';
+                    g_message ("fetch_peer_account_id: parsed accountId=%s", out_id);
+                    ret = TRUE;
+                } else {
+                    g_message ("fetch_peer_account_id: length %u invalid (out_id_size=%u)",
+                               (unsigned)len, (unsigned)out_id_size);
+                }
+            } else {
+                g_message ("fetch_peer_account_id: <AccountId> tag NOT found -- verify SOAP namespace/format");
+            }
+        } else {
+            g_message ("fetch_peer_account_id: response body is NULL despite HTTP 2xx");
+        }
+    } else {
+        const char *reason = soup_status_get_phrase (status);
+        g_message ("fetch_peer_account_id: FAILED status=%u (%s) to %s -- TLS error (0=SSL) or peer down",
+                   status, reason ? reason : "unknown", control_url);
+    }
+
+    g_object_unref (msg);
+    g_object_unref (session);
+    return ret;
 }
 
 G_MODULE_EXPORT void
@@ -124,10 +246,56 @@ query_gwyipv6_cb (GUPnPService *service, char *variable, GValue *value, gpointer
 G_MODULE_EXPORT void
 get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer user_data)
 {
+    char peer_id[ACCOUNTID_SIZE] = {0};
+
+    g_message ("get_account_id_cb: entry, last_caller_ip=%s",
+               last_caller_ip[0] ? last_caller_ip : "(empty)");
+
+    /* Step 1: Check X-IDM-Direct-Fetch header.
+     * If set, this is our own reverse lookup call coming back (or old XB calling us).
+     * Return own accountId immediately -- DO NOT do a reverse call here (would loop). */
+    SoupMessage *req_msg = gupnp_service_action_get_message (action);
+    if (req_msg == NULL) {
+        g_message ("get_account_id_cb: WARNING gupnp_service_action_get_message returned NULL");
+    } else {
+        const char *direct_fetch_hdr = soup_message_headers_get_one (
+            req_msg->request_headers, "X-IDM-Direct-Fetch");
+        g_message ("get_account_id_cb: X-IDM-Direct-Fetch header = %s",
+                   direct_fetch_hdr ? direct_fetch_hdr : "(not present)");
+        if (direct_fetch_hdr != NULL) {
+            memset(accountId, 0, ACCOUNTID_SIZE);
+            getAccountId(accountId);
+            g_message ("get_account_id_cb: direct-fetch path, returning own accountId=%s", accountId);
+            gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId, NULL);
+            gupnp_service_action_return (action);
+            return;
+        }
+    }
+
+    /* Step 2: Echo path -- reverse-call the requester and return their accountId.
+     * Old XB compares returned_id == own_id; echoing their own id makes this pass. */
+    if (last_caller_ip[0] != '\0') {
+        g_message ("get_account_id_cb: attempting reverse fetch to caller_ip=%s", last_caller_ip);
+        if (fetch_peer_account_id (last_caller_ip, peer_id, sizeof (peer_id)) &&
+            peer_id[0] != '\0') {
+            g_message ("get_account_id_cb: echo SUCCESS, returning peer accountId=%s to %s",
+                       peer_id, last_caller_ip);
+            gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, peer_id, NULL);
+            gupnp_service_action_return (action);
+            return;
+        }
+        g_message ("get_account_id_cb: reverse fetch FAILED for ip=%s (TLS error? peer down? cert not ready?)",
+                   last_caller_ip);
+    } else {
+        g_message ("get_account_id_cb: last_caller_ip empty, skipping reverse fetch");
+    }
+
+    /* Step 3 (fallback): Return own accountId.
+     * Handles: TLS failure, peer unreachable, certs not provisioned yet. */
     memset(accountId,0,ACCOUNTID_SIZE);
     getAccountId(accountId);
-    g_message("accountId=%s",accountId);
-    gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId,NULL);
+    g_message ("get_account_id_cb: fallback path, returning own accountId=%s", accountId);
+    gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId, NULL);
     gupnp_service_action_return (action);
 }
 
@@ -363,6 +531,10 @@ int idm_server_start(char* Interface, char * base_mac)
             // Set TLS config params here.
             g_message("%s setting CA cert : %s", __FUNCTION__, caFile);
             gupnp_context_set_tls_params(server_upnpContextDeviceProtect,caFile,NULL, NULL);
+            /* Capture the remote caller IP for each incoming request */
+            g_signal_connect (gupnp_context_get_server (server_upnpContextDeviceProtect),
+                              "request-started",
+                              G_CALLBACK (idm_request_started_cb), NULL);
 #ifndef GUPNP_1_2
             dev = gupnp_root_device_new (server_upnpContextDeviceProtect, "/etc/xupnp/IDM_DP.xml", "/etc/xupnp/");
 #else
