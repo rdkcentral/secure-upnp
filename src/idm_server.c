@@ -286,19 +286,25 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
     }
 
     /* Step 2: Echo path -- reverse-call the requester and return their accountId.
-     * Old XB compares returned_id == own_id; echoing their own id makes this pass. */
+     * Old XB compares returned_id == own_id; echoing their own id makes this pass.
+     * Guard: never reverse-fetch to our own IP (XLE self-discovers itself via SSDP).
+     * A SoupSessionSync call to self blocks GMainLoop which must serve the reply -> deadlock. */
     if (caller_ip[0] != '\0') {
-        g_message ("get_account_id_cb: attempting reverse fetch to caller_ip=%s", caller_ip);
-        if (fetch_peer_account_id (caller_ip, peer_id, sizeof (peer_id)) &&
-            peer_id[0] != '\0') {
-            g_message ("get_account_id_cb: echo SUCCESS, returning peer accountId=%s to %s",
-                       peer_id, caller_ip);
-            gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, peer_id, NULL);
-            gupnp_service_action_return (action);
-            return;
+        if (strcmp (caller_ip, clientIp) == 0) {
+            g_message ("get_account_id_cb: caller %s is own IP (self-discovery via SSDP), skipping reverse fetch", caller_ip);
+        } else {
+            g_message ("get_account_id_cb: attempting reverse fetch to caller_ip=%s", caller_ip);
+            if (fetch_peer_account_id (caller_ip, peer_id, sizeof (peer_id)) &&
+                peer_id[0] != '\0') {
+                g_message ("get_account_id_cb: echo SUCCESS, returning peer accountId=%s to %s",
+                           peer_id, caller_ip);
+                gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, peer_id, NULL);
+                gupnp_service_action_return (action);
+                return;
+            }
+            g_message ("get_account_id_cb: reverse fetch FAILED for ip=%s (TLS error? peer down? cert not ready?)",
+                       caller_ip);
         }
-        g_message ("get_account_id_cb: reverse fetch FAILED for ip=%s (TLS error? peer down? cert not ready?)",
-                   caller_ip);
     } else {
         g_message ("get_account_id_cb: caller_ip unknown, skipping reverse fetch");
     }
