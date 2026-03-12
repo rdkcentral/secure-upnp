@@ -66,9 +66,10 @@ extern char caFile[SSL_FILE_LEN];
 #ifdef ENABLE_HW_CERT_USAGE
 extern char se_cert_p12[SSL_FILE_LEN];
 #endif
-/* caller IP captured in request-started signal, used in get_account_id_cb.
- * 64 bytes: safely holds IPv4 (max 15) and IPv6 (max 45) addresses. */
-static char last_caller_ip[64];
+/* Per-message caller IP map: SoupMessage* -> gchar* (IP string).
+ * Avoids the race where concurrent request-started signals overwrite a global
+ * before the action callback fires for the intended message. */
+static GHashTable *s_msg_ip_map = NULL;
 /* TLS interaction type defined in idm_client.c */
 extern GType xupnp_tls_interaction_get_type(void);
 
@@ -87,19 +88,20 @@ bool check_null_idm(char *str)
     return false;
 }
 
-/* Capture remote caller IP before action dispatch */
+/* Capture remote caller IP per-message to avoid race with concurrent requests */
 static void
 idm_request_started_cb (SoupServer *server, SoupMessage *msg,
                         SoupClientContext *client, gpointer user_data)
 {
+    if (!s_msg_ip_map)
+        s_msg_ip_map = g_hash_table_new_full (g_direct_hash, g_direct_equal,
+                                              NULL, g_free);
     const char *host = soup_client_context_get_host (client);
     if (host) {
-        strncpy (last_caller_ip, host, sizeof (last_caller_ip) - 1);
-        last_caller_ip[sizeof (last_caller_ip) - 1] = '\0';
-        g_message ("idm_request_started_cb: captured caller IP = %s", last_caller_ip);
+        g_hash_table_insert (s_msg_ip_map, msg, g_strdup (host));
+        g_message ("idm_request_started_cb: captured caller IP = %s", host);
     } else {
-        g_message ("idm_request_started_cb: WARNING get_host returned NULL, clearing last_caller_ip");
-        last_caller_ip[0] = '\0';
+        g_message ("idm_request_started_cb: WARNING get_host returned NULL");
     }
 }
 
@@ -126,6 +128,8 @@ fetch_peer_account_id (const char *peer_ip, char *out_id, gsize out_id_size)
         SOUP_SESSION_SSL_STRICT,     TRUE,
         SOUP_SESSION_TLS_INTERACTION, tls_interaction,
         NULL);
+    /* NOTE: no SOUP_SESSION_TIMEOUT set -- call will block until peer responds or connection fails */
+    g_message ("fetch_peer_account_id: no session timeout configured, SOAP call may block if peer is unreachable");
     g_object_unref (tls_interaction);  /* release our ref; session holds its own */
     if (!session) {
         g_message ("fetch_peer_account_id: failed to create SoupSession");
@@ -248,13 +252,22 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
 {
     char peer_id[ACCOUNTID_SIZE] = {0};
 
-    g_message ("get_account_id_cb: entry, last_caller_ip=%s",
-               last_caller_ip[0] ? last_caller_ip : "(empty)");
+    /* Look up caller IP from per-message table -- avoids race with other concurrent requests */
+    SoupMessage *req_msg = gupnp_service_action_get_message (action);
+    char caller_ip[64] = {0};
+    if (req_msg && s_msg_ip_map) {
+        const char *ip_ref = g_hash_table_lookup (s_msg_ip_map, req_msg);
+        if (ip_ref)
+            strncpy (caller_ip, ip_ref, sizeof (caller_ip) - 1);
+        g_hash_table_remove (s_msg_ip_map, req_msg);  /* clean up */
+    }
+
+    g_message ("get_account_id_cb: entry, caller_ip=%s",
+               caller_ip[0] ? caller_ip : "(unknown)");
 
     /* Step 1: Check X-IDM-Direct-Fetch header.
      * If set, this is our own reverse lookup call coming back (or old XB calling us).
      * Return own accountId immediately -- DO NOT do a reverse call here (would loop). */
-    SoupMessage *req_msg = gupnp_service_action_get_message (action);
     if (req_msg == NULL) {
         g_message ("get_account_id_cb: WARNING gupnp_service_action_get_message returned NULL");
     } else {
@@ -274,20 +287,20 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
 
     /* Step 2: Echo path -- reverse-call the requester and return their accountId.
      * Old XB compares returned_id == own_id; echoing their own id makes this pass. */
-    if (last_caller_ip[0] != '\0') {
-        g_message ("get_account_id_cb: attempting reverse fetch to caller_ip=%s", last_caller_ip);
-        if (fetch_peer_account_id (last_caller_ip, peer_id, sizeof (peer_id)) &&
+    if (caller_ip[0] != '\0') {
+        g_message ("get_account_id_cb: attempting reverse fetch to caller_ip=%s", caller_ip);
+        if (fetch_peer_account_id (caller_ip, peer_id, sizeof (peer_id)) &&
             peer_id[0] != '\0') {
             g_message ("get_account_id_cb: echo SUCCESS, returning peer accountId=%s to %s",
-                       peer_id, last_caller_ip);
+                       peer_id, caller_ip);
             gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, peer_id, NULL);
             gupnp_service_action_return (action);
             return;
         }
         g_message ("get_account_id_cb: reverse fetch FAILED for ip=%s (TLS error? peer down? cert not ready?)",
-                   last_caller_ip);
+                   caller_ip);
     } else {
-        g_message ("get_account_id_cb: last_caller_ip empty, skipping reverse fetch");
+        g_message ("get_account_id_cb: caller_ip unknown, skipping reverse fetch");
     }
 
     /* Step 3 (fallback): Return own accountId.
