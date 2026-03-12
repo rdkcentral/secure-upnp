@@ -76,6 +76,7 @@ char se_cert_conf_file[128];
 static int fd = -1;
 static gboolean idm_upnp_init_status = FALSE;
 static char accountId[ACCOUNTID_SIZE];
+extern void idm_cache_peer_accountid (const char *ip, const char *accountid);
 static GUPnPContext *upnpContextDeviceProtect;
 static GMainLoop *main_loop;
 typedef GTlsInteraction XupnpTlsInteraction;
@@ -726,18 +727,12 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                         if(valid_account==1)
                         {
                             g_message("Discovered device AccountId is valid");
-                            if(g_strcmp0(g_strstrip(accountId),temp)==0)
-                            {
-                                g_mutex_lock(mutex);
-                                xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
-                                g_mutex_unlock(mutex);
-                                g_message("Inserted new/updated device %s in the list as accountId %s is same", sno,temp);
-                                callback(&di,1,1);
-                            }
-                            else
-                            {
-                                g_message("Not adding to the list as accountId %s is different",temp);
-                            }
+                            idm_cache_peer_accountid(gwydata->clientip->str, temp);
+                            g_mutex_lock(mutex);
+                            xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
+                            g_mutex_unlock(mutex);
+                            g_message("Associating device %s accountId=%s", sno, temp);
+                            callback(&di,1,1);
                         }
                         else
                         {

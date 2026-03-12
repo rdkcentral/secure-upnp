@@ -33,6 +33,7 @@
 #include <sys/ioctl.h>
 #include <ifaddrs.h>
 #include <libgupnp/gupnp-control-point.h>
+#include <libsoup/soup.h>
 #ifdef ENABLE_SD_NOTIFY
 #include <systemd/sd-daemon.h>
 #endif
@@ -65,6 +66,33 @@ extern char caFile[SSL_FILE_LEN];
 #ifdef ENABLE_HW_CERT_USAGE
 extern char se_cert_p12[SSL_FILE_LEN];
 #endif
+
+/* per-message caller IP map: SoupMessage* -> gchar* (IP string) */
+static GHashTable *s_msg_ip_map = NULL;
+/* discovery cache: gchar* (peer IP) -> gchar* (peer accountId), populated by idm_client */
+static GHashTable *s_peer_id_cache = NULL;
+
+/* Called by idm_client after it successfully receives a peer's accountId */
+void
+idm_cache_peer_accountid (const char *ip, const char *accountid)
+{
+    if (!s_peer_id_cache)
+        s_peer_id_cache = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    g_hash_table_insert (s_peer_id_cache, g_strdup (ip), g_strdup (accountid));
+    g_message ("idm_cache_peer_accountid: ip=%s accountId=%s", ip, accountid);
+}
+
+/* Capture remote caller IP per-message to identify who is asking GetAccountId */
+static void
+idm_request_started_cb (SoupServer *server, SoupMessage *msg,
+                        SoupClientContext *client, gpointer user_data)
+{
+    if (!s_msg_ip_map)
+        s_msg_ip_map = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, g_free);
+    const char *host = soup_client_context_get_host (client);
+    if (host)
+        g_hash_table_insert (s_msg_ip_map, msg, g_strdup (host));
+}
 
 BOOL check_empty_idm(char *str)
 {
@@ -124,10 +152,33 @@ query_gwyipv6_cb (GUPnPService *service, char *variable, GValue *value, gpointer
 G_MODULE_EXPORT void
 get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer user_data)
 {
-    memset(accountId,0,ACCOUNTID_SIZE);
+    /* Look up caller IP from per-message table (populated by request-started signal) */
+    SoupMessage *req_msg = gupnp_service_action_get_message (action);
+    char caller_ip[64] = {0};
+    if (req_msg && s_msg_ip_map) {
+        const char *ip_ref = g_hash_table_lookup (s_msg_ip_map, req_msg);
+        if (ip_ref)
+            strncpy (caller_ip, ip_ref, sizeof (caller_ip) - 1);
+        g_hash_table_remove (s_msg_ip_map, req_msg);
+    }
+
+    /* Return peer's accountId from discovery cache (avoids any reverse SOAP call) */
+    if (caller_ip[0] && s_peer_id_cache) {
+        const char *cached = g_hash_table_lookup (s_peer_id_cache, caller_ip);
+        if (cached) {
+            g_message ("get_account_id_cb: cache hit ip=%s, returning accountId=%s", caller_ip, cached);
+            gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, cached, NULL);
+            gupnp_service_action_return (action);
+            return;
+        }
+    }
+
+    /* Fallback: return own accountId (cache not yet populated for this peer) */
+    memset(accountId, 0, ACCOUNTID_SIZE);
     getAccountId(accountId);
-    g_message("accountId=%s",accountId);
-    gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId,NULL);
+    g_message ("get_account_id_cb: cache miss for %s, returning own accountId=%s",
+               caller_ip[0] ? caller_ip : "(unknown)", accountId);
+    gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId, NULL);
     gupnp_service_action_return (action);
 }
 
@@ -378,6 +429,9 @@ int idm_server_start(char* Interface, char * base_mac)
             {
                 g_message("XUPNP Identity service successfully created");
             }
+            g_signal_connect (gupnp_context_get_server (server_upnpContextDeviceProtect),
+                              "request-started",
+                              G_CALLBACK (idm_request_started_cb), NULL);
             g_signal_connect (upnpIdService, "action-invoked::GetBcastMacAddress", G_CALLBACK (get_bcastmacaddress_cb), NULL);
             g_signal_connect (upnpIdService, "query-variable::BcastMacAddress", G_CALLBACK (query_bcastmacaddress_cb), NULL);
             g_signal_connect (upnpIdService, "action-invoked::GetClientIP", G_CALLBACK (get_client_ip_cb), NULL);
