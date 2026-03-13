@@ -75,7 +75,6 @@ char se_cert_conf_file[128];
 
 static int fd = -1;
 static gboolean idm_upnp_init_status = FALSE;
-static char accountId[ACCOUNTID_SIZE];
 extern void idm_cache_peer_accountid (const char *ip, const char *accountid);
 static GUPnPContext *upnpContextDeviceProtect;
 static GMainLoop *main_loop;
@@ -713,33 +712,15 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy_i, "GetAccountId","AccountId", &temp, FALSE))
                     {
-                        int valid_account=1,loop=0;
                         g_message("Discovered device sent accountId as %s",temp);
-                        for(loop=0;loop<(int)(strlen(temp));loop++)
-                        {
-                            if(temp[loop] < '0' || temp[loop] > '9')
-                            {
-                                g_message("not a valid account due to %c presence",temp[loop]);
-                                valid_account=0;
-                                break;
-                            }
-                        }
-                        if(valid_account==1)
-                        {
-                            g_message("Discovered device AccountId is valid");
-                            /* Only cache peer (XB) accountId -- skip self-discovery */
-                            if(g_strcmp0(g_strstrip(ownSerialNo->str), sno) != 0)
-                                idm_cache_peer_accountid(gwydata->clientip->str, temp);
-                            g_mutex_lock(mutex);
-                            xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
-                            g_mutex_unlock(mutex);
-                            g_message("Associating device %s accountId=%s", sno, temp);
-                            callback(&di,1,1);
-                        }
-                        else
-                        {
-                            g_message("Its not valid accountID so accountId %s not adding to the list",temp);
-                        }
+                        /* Only cache peer (XB) accountId -- skip self-discovery */
+                        if(g_strcmp0(g_strstrip(ownSerialNo->str), sno) != 0)
+                            idm_cache_peer_accountid(gwydata->clientip->str, temp);
+                        g_mutex_lock(mutex);
+                        xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
+                        g_mutex_unlock(mutex);
+                        g_message("Associating device %s accountId=%s", sno, temp);
+                        callback(&di,1,1);
                         g_free(temp);
                     }
                 }
@@ -914,22 +895,6 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     getserialnum(ownSerialNo);
     callback=func_callback;
 #ifndef IDM_DEBUG
-    int ind=-1;
-    errno_t rc = -1;
-    memset(accountId,0,ACCOUNTID_SIZE);
-    while(1)
-    {
-        getAccountId(accountId);
-        g_message("%s:AccountId=%s",__FUNCTION__,accountId);
-        rc = strcasecmp_s("unknown",strlen("unknown"),accountId,&ind);
-        ERR_CHK(rc);
-        if(ind || rc != EOK)
-        {
-            break;
-        }
-        sleep(5);
-    }
-    g_message("%s:Account ID complete.AccountId = %s", __FUNCTION__, accountId);
 #endif
 #ifndef IDM_DEBUG
 #ifndef ENABLE_HW_CERT_USAGE
