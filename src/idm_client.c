@@ -727,7 +727,9 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                         if(valid_account==1)
                         {
                             g_message("Discovered device AccountId is valid");
-                            idm_cache_peer_accountid(gwydata->clientip->str, temp);
+                            /* Only cache peer (XB) accountId -- skip self-discovery */
+                            if(g_strcmp0(g_strstrip(ownSerialNo->str), sno) != 0)
+                                idm_cache_peer_accountid(gwydata->clientip->str, temp);
                             g_mutex_lock(mutex);
                             xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
                             g_mutex_unlock(mutex);
