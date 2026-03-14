@@ -72,6 +72,68 @@ static GHashTable *s_msg_ip_map = NULL;
 /* discovery cache: gchar* (peer IP) -> gchar* (peer accountId), populated by idm_client */
 static GHashTable *s_peer_id_cache = NULL;
 
+/* Deferred GetAccountId request: saved while waiting for cache to be populated */
+typedef struct {
+    char                caller_ip[64];
+    GUPnPServiceAction *action;
+    guint               attempts;
+} PendingIdRequest;
+
+#define PENDING_RETRY_MS    200   /* poll interval while waiting for cache */
+#define PENDING_MAX_RETRIES 25    /* give up after 5 seconds (25 x 200ms) */
+
+static GList *s_pending_id_requests = NULL;
+static guint  s_pending_timer_id    = 0;
+
+/* Periodically check if the discovery cache now has the peer's accountId,
+ * and send the deferred SOAP response once found (or on timeout). */
+static gboolean
+flush_pending_id_requests (gpointer user_data)
+{
+    GList *iter = s_pending_id_requests;
+    while (iter) {
+        PendingIdRequest *req  = iter->data;
+        GList            *next = iter->next;
+        gboolean          done = FALSE;
+
+        if (s_peer_id_cache) {
+            const char *cached = g_hash_table_lookup (s_peer_id_cache, req->caller_ip);
+            if (cached) {
+                g_message ("get_account_id_cb: deferred cache hit ip=%s, returning accountId=%s",
+                           req->caller_ip, cached);
+                gupnp_service_action_set (req->action, "AccountId", G_TYPE_STRING, cached, NULL);
+                gupnp_service_action_return (req->action);
+                done = TRUE;
+            }
+        }
+
+        if (!done) {
+            req->attempts++;
+            if (req->attempts >= PENDING_MAX_RETRIES) {
+                char ownId[ACCOUNTID_SIZE] = {0};
+                getAccountId (ownId);
+                g_message ("get_account_id_cb: deferred timeout ip=%s, returning own accountId=%s",
+                           req->caller_ip, ownId);
+                gupnp_service_action_set (req->action, "AccountId", G_TYPE_STRING, ownId, NULL);
+                gupnp_service_action_return (req->action);
+                done = TRUE;
+            }
+        }
+
+        if (done) {
+            s_pending_id_requests = g_list_delete_link (s_pending_id_requests, iter);
+            g_free (req);
+        }
+        iter = next;
+    }
+
+    if (!s_pending_id_requests) {
+        s_pending_timer_id = 0;
+        return G_SOURCE_REMOVE;
+    }
+    return G_SOURCE_CONTINUE;
+}
+
 /* Called by idm_client after it successfully receives a peer's accountId */
 void
 idm_cache_peer_accountid (const char *ip, const char *accountid)
@@ -80,6 +142,9 @@ idm_cache_peer_accountid (const char *ip, const char *accountid)
         s_peer_id_cache = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_hash_table_insert (s_peer_id_cache, g_strdup (ip), g_strdup (accountid));
     g_message ("idm_cache_peer_accountid: ip=%s accountId=%s", ip, accountid);
+    /* Wake the deferred-request flush immediately if anyone is waiting */
+    if (s_pending_id_requests && s_pending_timer_id == 0)
+        s_pending_timer_id = g_timeout_add (0, flush_pending_id_requests, NULL);
 }
 
 /* Capture remote caller IP per-message to identify who is asking GetAccountId */
@@ -173,13 +238,21 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
         }
     }
 
-    /* Fallback: return own accountId (cache not yet populated for this peer) */
-    memset(accountId, 0, ACCOUNTID_SIZE);
-    getAccountId(accountId);
-    g_message ("get_account_id_cb: cache miss for %s, returning own accountId=%s",
-               caller_ip[0] ? caller_ip : "(unknown)", accountId);
-    gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId, NULL);
-    gupnp_service_action_return (action);
+    /* Cache miss -- defer the response and retry every PENDING_RETRY_MS until
+     * idm_client populates the cache with this peer's accountId, or until
+     * PENDING_MAX_RETRIES is exceeded (after which own accountId is returned). */
+    PendingIdRequest *req = g_new0 (PendingIdRequest, 1);
+    strncpy (req->caller_ip, caller_ip[0] ? caller_ip : "(unknown)",
+             sizeof (req->caller_ip) - 1);
+    req->action   = action;
+    req->attempts = 0;
+    s_pending_id_requests = g_list_append (s_pending_id_requests, req);
+    g_message ("get_account_id_cb: cache miss for %s, deferring response",
+               caller_ip[0] ? caller_ip : "(unknown)");
+    if (!s_pending_timer_id)
+        s_pending_timer_id = g_timeout_add (PENDING_RETRY_MS,
+                                            flush_pending_id_requests, NULL);
+    /* Do NOT call gupnp_service_action_return() here -- response is deferred */
 }
 
 G_MODULE_EXPORT void
