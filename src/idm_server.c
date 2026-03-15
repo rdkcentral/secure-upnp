@@ -227,6 +227,18 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
         g_hash_table_remove (s_msg_ip_map, req_msg);
     }
 
+    /* Self-call: XLE discovers itself via SSDP and queries its own server.
+     * The cache is never populated for own IP, so short-circuit immediately. */
+    if (caller_ip[0] && strcmp (caller_ip, clientIp) == 0) {
+        char selfId[ACCOUNTID_SIZE] = {0};
+        getAccountId (selfId);
+        g_message ("get_account_id_cb: self-call from %s, returning own accountId=%s",
+                   caller_ip, selfId);
+        gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, selfId, NULL);
+        gupnp_service_action_return (action);
+        return;
+    }
+
     /* Return peer's accountId from discovery cache (avoids any reverse SOAP call) */
     if (caller_ip[0] && s_peer_id_cache) {
         const char *cached = g_hash_table_lookup (s_peer_id_cache, caller_ip);
