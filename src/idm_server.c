@@ -250,6 +250,24 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
         }
     }
 
+    /* If own accountId is already valid (non-Unknown), return it immediately.
+     * This prevents a circular deferral deadlock when both XLE and XB run new
+     * code and cold-boot simultaneously: XB's syscfg always has a real accountId
+     * so XB's server returns instantly, populating XLE's cache, which unblocks
+     * XLE's deferred entry.  On XLE, getAccountId() returns "Unknown" so this
+     * condition is false and the defer path is taken as normal. */
+    {
+        char ownId[ACCOUNTID_SIZE] = {0};
+        getAccountId (ownId);
+        if (ownId[0] && strcasecmp (ownId, "Unknown") != 0) {
+            g_message ("get_account_id_cb: cache miss but own accountId valid, returning %s",
+                       ownId);
+            gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, ownId, NULL);
+            gupnp_service_action_return (action);
+            return;
+        }
+    }
+
     /* Cache miss -- defer the response and retry every PENDING_RETRY_MS until
      * idm_client populates the cache with this peer's accountId, or until
      * PENDING_MAX_RETRIES is exceeded (after which own accountId is returned). */
