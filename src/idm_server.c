@@ -138,6 +138,17 @@ flush_pending_id_requests (gpointer user_data)
 void
 idm_cache_peer_accountid (const char *ip, const char *accountid)
 {
+    /* Do not cache Unknown or empty accountId.  Storing Unknown would poison the
+     * cache: when the peer next asks our server for accountId we would echo
+     * Unknown back, preventing the real accountId from ever being returned.
+     * Leaving the entry absent keeps the cache-miss / Option-2 path active so
+     * that a device with a valid accountId (e.g. XB via syscfg) can return it
+     * immediately on the next request. */
+    if (!accountid || accountid[0] == '\0' || strcasecmp (accountid, "Unknown") == 0) {
+        g_message ("idm_cache_peer_accountid: ip=%s accountId=%s (skipping Unknown/empty)", ip,
+                   accountid ? accountid : "(null)");
+        return;
+    }
     if (!s_peer_id_cache)
         s_peer_id_cache = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_hash_table_insert (s_peer_id_cache, g_strdup (ip), g_strdup (accountid));
