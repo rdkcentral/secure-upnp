@@ -67,108 +67,6 @@ extern char caFile[SSL_FILE_LEN];
 extern char se_cert_p12[SSL_FILE_LEN];
 #endif
 
-/* per-message caller IP map: SoupMessage* -> gchar* (IP string) */
-static GHashTable *s_msg_ip_map = NULL;
-/* discovery cache: gchar* (peer IP) -> gchar* (peer accountId), populated by idm_client */
-static GHashTable *s_peer_id_cache = NULL;
-
-/* Deferred GetAccountId request: saved while waiting for cache to be populated */
-typedef struct {
-    char                caller_ip[64];
-    GUPnPServiceAction *action;
-    guint               attempts;
-} PendingIdRequest;
-
-#define PENDING_RETRY_MS    200   /* poll interval while waiting for cache */
-#define PENDING_MAX_RETRIES 25    /* give up after 5 seconds (25 x 200ms) */
-
-static GList *s_pending_id_requests = NULL;
-static guint  s_pending_timer_id    = 0;
-
-/* Periodically check if the discovery cache now has the peer's accountId,
- * and send the deferred SOAP response once found (or on timeout). */
-static gboolean
-flush_pending_id_requests (gpointer user_data)
-{
-    GList *iter = s_pending_id_requests;
-    while (iter) {
-        PendingIdRequest *req  = iter->data;
-        GList            *next = iter->next;
-        gboolean          done = FALSE;
-
-        if (s_peer_id_cache) {
-            const char *cached = g_hash_table_lookup (s_peer_id_cache, req->caller_ip);
-            if (cached) {
-                g_message ("get_account_id_cb: deferred cache hit ip=%s, returning accountId=%s",
-                           req->caller_ip, cached);
-                gupnp_service_action_set (req->action, "AccountId", G_TYPE_STRING, cached, NULL);
-                gupnp_service_action_return (req->action);
-                done = TRUE;
-            }
-        }
-
-        if (!done) {
-            req->attempts++;
-            if (req->attempts >= PENDING_MAX_RETRIES) {
-                char ownId[ACCOUNTID_SIZE] = {0};
-                getAccountId (ownId);
-                g_message ("get_account_id_cb: deferred timeout ip=%s, returning own accountId=%s",
-                           req->caller_ip, ownId);
-                gupnp_service_action_set (req->action, "AccountId", G_TYPE_STRING, ownId, NULL);
-                gupnp_service_action_return (req->action);
-                done = TRUE;
-            }
-        }
-
-        if (done) {
-            s_pending_id_requests = g_list_delete_link (s_pending_id_requests, iter);
-            g_free (req);
-        }
-        iter = next;
-    }
-
-    if (!s_pending_id_requests) {
-        s_pending_timer_id = 0;
-        return G_SOURCE_REMOVE;
-    }
-    return G_SOURCE_CONTINUE;
-}
-
-/* Called by idm_client after it successfully receives a peer's accountId */
-void
-idm_cache_peer_accountid (const char *ip, const char *accountid)
-{
-    /* Do not cache Unknown or empty accountId.  Storing Unknown would poison the
-     * cache: when the peer next asks our server for accountId we would echo
-     * Unknown back, preventing the real accountId from ever being returned.
-     * Leaving the entry absent keeps the cache-miss / Option-2 path active so
-     * that a device with a valid accountId (e.g. XB via syscfg) can return it
-     * immediately on the next request. */
-    if (!accountid || accountid[0] == '\0' || strcasecmp (accountid, "Unknown") == 0) {
-        g_message ("idm_cache_peer_accountid: ip=%s accountId=%s (skipping Unknown/empty)", ip,
-                   accountid ? accountid : "(null)");
-        return;
-    }
-    if (!s_peer_id_cache)
-        s_peer_id_cache = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-    g_hash_table_insert (s_peer_id_cache, g_strdup (ip), g_strdup (accountid));
-    g_message ("idm_cache_peer_accountid: ip=%s accountId=%s", ip, accountid);
-    /* Wake the deferred-request flush immediately if anyone is waiting */
-    if (s_pending_id_requests && s_pending_timer_id == 0)
-        s_pending_timer_id = g_timeout_add (0, flush_pending_id_requests, NULL);
-}
-
-/* Capture remote caller IP per-message to identify who is asking GetAccountId */
-static void
-idm_request_started_cb (SoupServer *server, SoupMessage *msg,
-                        SoupClientContext *client, gpointer user_data)
-{
-    if (!s_msg_ip_map)
-        s_msg_ip_map = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, g_free);
-    const char *host = soup_client_context_get_host (client);
-    if (host)
-        g_hash_table_insert (s_msg_ip_map, msg, g_strdup (host));
-}
 
 BOOL check_empty_idm(char *str)
 {
@@ -228,72 +126,11 @@ query_gwyipv6_cb (GUPnPService *service, char *variable, GValue *value, gpointer
 G_MODULE_EXPORT void
 get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer user_data)
 {
-    /* Look up caller IP from per-message table (populated by request-started signal) */
-    SoupMessage *req_msg = gupnp_service_action_get_message (action);
-    char caller_ip[64] = {0};
-    if (req_msg && s_msg_ip_map) {
-        const char *ip_ref = g_hash_table_lookup (s_msg_ip_map, req_msg);
-        if (ip_ref)
-            strncpy (caller_ip, ip_ref, sizeof (caller_ip) - 1);
-        g_hash_table_remove (s_msg_ip_map, req_msg);
-    }
-
-    /* Self-call: XLE discovers itself via SSDP and queries its own server.
-     * The cache is never populated for own IP, so short-circuit immediately. */
-    if (caller_ip[0] && strcmp (caller_ip, clientIp) == 0) {
-        char selfId[ACCOUNTID_SIZE] = {0};
-        getAccountId (selfId);
-        g_message ("get_account_id_cb: self-call from %s, returning own accountId=%s",
-                   caller_ip, selfId);
-        gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, selfId, NULL);
-        gupnp_service_action_return (action);
-        return;
-    }
-
-    /* Return peer's accountId from discovery cache (avoids any reverse SOAP call) */
-    if (caller_ip[0] && s_peer_id_cache) {
-        const char *cached = g_hash_table_lookup (s_peer_id_cache, caller_ip);
-        if (cached) {
-            g_message ("get_account_id_cb: cache hit ip=%s, returning accountId=%s", caller_ip, cached);
-            gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, cached, NULL);
-            gupnp_service_action_return (action);
-            return;
-        }
-    }
-
-    /* If own accountId is already valid (non-Unknown), return it immediately.
-     * This prevents a circular deferral deadlock when both XLE and XB run new
-     * code and cold-boot simultaneously: XB's syscfg always has a real accountId
-     * so XB's server returns instantly, populating XLE's cache, which unblocks
-     * XLE's deferred entry.  On XLE, getAccountId() returns "Unknown" so this
-     * condition is false and the defer path is taken as normal. */
-    {
-        char ownId[ACCOUNTID_SIZE] = {0};
-        getAccountId (ownId);
-        if (ownId[0] && strcasecmp (ownId, "Unknown") != 0) {
-            g_message ("get_account_id_cb: cache miss but own accountId valid, returning %s",
-                       ownId);
-            gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, ownId, NULL);
-            gupnp_service_action_return (action);
-            return;
-        }
-    }
-
-    /* Cache miss -- defer the response and retry every PENDING_RETRY_MS until
-     * idm_client populates the cache with this peer's accountId, or until
-     * PENDING_MAX_RETRIES is exceeded (after which own accountId is returned). */
-    PendingIdRequest *req = g_new0 (PendingIdRequest, 1);
-    strncpy (req->caller_ip, caller_ip[0] ? caller_ip : "(unknown)",
-             sizeof (req->caller_ip) - 1);
-    req->action   = action;
-    req->attempts = 0;
-    s_pending_id_requests = g_list_append (s_pending_id_requests, req);
-    g_message ("get_account_id_cb: cache miss for %s, deferring response",
-               caller_ip[0] ? caller_ip : "(unknown)");
-    if (!s_pending_timer_id)
-        s_pending_timer_id = g_timeout_add (PENDING_RETRY_MS,
-                                            flush_pending_id_requests, NULL);
-    /* Do NOT call gupnp_service_action_return() here -- response is deferred */
+    memset(accountId, 0, ACCOUNTID_SIZE);
+    getAccountId(accountId);
+    g_message("accountId=%s", accountId);
+    gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId, NULL);
+    gupnp_service_action_return (action);
 }
 
 G_MODULE_EXPORT void
@@ -543,9 +380,6 @@ int idm_server_start(char* Interface, char * base_mac)
             {
                 g_message("XUPNP Identity service successfully created");
             }
-            g_signal_connect (gupnp_context_get_server (server_upnpContextDeviceProtect),
-                              "request-started",
-                              G_CALLBACK (idm_request_started_cb), NULL);
             g_signal_connect (upnpIdService, "action-invoked::GetBcastMacAddress", G_CALLBACK (get_bcastmacaddress_cb), NULL);
             g_signal_connect (upnpIdService, "query-variable::BcastMacAddress", G_CALLBACK (query_bcastmacaddress_cb), NULL);
             g_signal_connect (upnpIdService, "action-invoked::GetClientIP", G_CALLBACK (get_client_ip_cb), NULL);
