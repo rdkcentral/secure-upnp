@@ -709,16 +709,11 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                         g_message("GatewayIPv6=%s",di.Ipv6);
                         g_free(temp);
                     }
-                    if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy_i, "GetAccountId","AccountId", &temp, FALSE))
-                    {
-                        g_message("Discovered device sent accountId as %s",temp);
-                        g_mutex_lock(mutex);
-                        xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
-                        g_mutex_unlock(mutex);
-                        g_message("Associating device %s accountId=%s", sno,temp);
-                        callback(&di,1,1);
-                        g_free(temp);
-                    }
+                    g_mutex_lock(mutex);
+                    xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
+                    g_mutex_unlock(mutex);
+                    g_message("Associating device %s", sno);
+                    callback(&di,1,1);
                 }
                 else
                 {
