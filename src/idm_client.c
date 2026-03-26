@@ -891,8 +891,6 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     getserialnum(ownSerialNo);
     callback=func_callback;
 #ifndef IDM_DEBUG
-#endif
-#ifndef IDM_DEBUG
 #ifndef ENABLE_HW_CERT_USAGE
     memset(caFile, 0 , sizeof(caFile));
     memset(certFile, 0 , sizeof(certFile));
