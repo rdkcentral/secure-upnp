@@ -59,6 +59,10 @@
 #ifdef ENABLE_HW_CERT_USAGE
 #include "rdkconfig.h"
 #endif
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+#include <telemetry_busmessage_sender.h>
+#endif
+#include "idm_log.h"
 #define CLIENT_CONTEXT_PORT 50767
 #define IDM_CLIENT_DEVICE "urn:schemas-upnp-org:device:IDM:1"
 #define IDM_SERVICE "urn:schemas-upnp-org:service:X1IDM:1"
@@ -713,6 +717,11 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                     xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
                     g_mutex_unlock(mutex);
                     g_message("Associating device %s", sno);
+                    g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
+                    IDM_LOG_INFO("device associated sno=%s\n", sno);
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+                    t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
+#endif
                     callback(&di,1,1);
                 }
                 else
@@ -810,6 +819,11 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                     xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
                     g_mutex_unlock(mutex);
                     g_message("Inserted new/updated device %s in the list", sno);
+                    g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
+                    IDM_LOG_INFO("device associated sno=%s\n", sno);
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+                    t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
+#endif
                     callback(&di,1,0);
                 }
                 else
@@ -885,6 +899,11 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     ownSerialNo=g_string_new(NULL);
     getserialnum(ownSerialNo);
     callback=func_callback;
+    g_message("TELEMETRY_IDM_DISCOVERY_STARTED:%s", ownSerialNo->str);
+    IDM_LOG_INFO("start_discovery called for serial %s\n", ownSerialNo->str);
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+    t2_event_s("IDM_DISCOVERY_STARTED_split", ownSerialNo->str);
+#endif
 #ifndef IDM_DEBUG
 #ifndef ENABLE_HW_CERT_USAGE
     memset(caFile, 0 , sizeof(caFile));
