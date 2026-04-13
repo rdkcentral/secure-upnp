@@ -473,13 +473,11 @@ void* verify_devices()
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp))==FALSE)
             {
                 g_message("Forced rescan failed");
-                IDM_LOG_ERR("gssdp_resource_browser_rescan failed (cp)\n");
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
                     //xupnp thread  is stuck for 5 minutes
                     g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
-                    IDM_LOG_ERR("xupnp stuck >5min cp inactive, triggering restart\n");
                     cp_bgw_inactive_count = 0;
                     v_secure_system("touch /tmp/idm_upnp_not_operational");
                 }
@@ -500,7 +498,6 @@ void* verify_devices()
             {
                 //xupnp got stuck for 5 minutes
                 g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
-                IDM_LOG_ERR("xupnp stuck >5min cp null, triggering restart\n");
                 cp_bgw_null_count = 0;
                 v_secure_system("touch /tmp/idm_upnp_not_operational");
                 // this is for information to confirm upnp locked with date and time
@@ -514,13 +511,11 @@ void* verify_devices()
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp_bgw))==FALSE)
             {
                 g_message("Forced rescan failed for broadband");
-                IDM_LOG_ERR("gssdp_resource_browser_rescan failed (cp_bgw)\n");
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
                     //xupnp got stuck for 5 minutes
                     g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
-                    IDM_LOG_ERR("xupnp stuck >5min cp_bgw inactive, triggering restart\n");
                     cp_bgw_inactive_count = 0;
                     v_secure_system("touch /tmp/idm_upnp_not_operational");
                     // this is for information to confirm upnp locked with date and time
@@ -543,7 +538,6 @@ void* verify_devices()
             {
                 //xupnp got stuck for 5 minutes
                 g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
-                IDM_LOG_ERR("xupnp stuck >5min cp_bgw null, triggering restart\n");
                 cp_bgw_null_count = 0;
                 v_secure_system("touch /tmp/idm_upnp_not_operational");
                 // this is for information to confirm upnp locked with date and time
