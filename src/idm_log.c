@@ -43,12 +43,14 @@ static pthread_mutex_t idm_log_mutex = PTHREAD_MUTEX_INITIALIZER;
 static FILE *idm_log_reopen(void)
 {
     struct stat st_fd, st_file;
-    /* Check if open fd still points to the same inode as the named file */
+    /* Check if open fd still points to the same file as the named path */
     if (idm_log_fp)
     {
         int stale = (fstat(fileno(idm_log_fp), &st_fd) != 0 ||
                      stat(IDM_LOG_FILE, &st_file) != 0 ||
-                     st_fd.st_ino != st_file.st_ino);
+                     st_fd.st_ino != st_file.st_ino ||
+                     st_fd.st_dev != st_file.st_dev ||
+                     st_fd.st_mode != st_file.st_mode);
         if (stale)
         {
             fclose(idm_log_fp);
