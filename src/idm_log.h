@@ -34,6 +34,7 @@
  * IDM_LOG_INFO(fmt, ...) — write a timestamped INFO line to Consolelog.txt.0.
  * IDM_LOG_ERR(fmt, ...) — write a timestamped ERROR line.
  *
+ * A newline is appended automatically; do not include a trailing "\n" in fmt.
  * Format matches the standard RDK log pattern:
  *   YYMMDD-HH:MM:SS.uuuuuu [mod=INTERDEVICEMANAGER, lvl=<LEVEL>] [tid=NNN] func line - message
  */

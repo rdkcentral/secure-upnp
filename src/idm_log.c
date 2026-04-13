@@ -63,8 +63,9 @@ static FILE *idm_log_reopen(void)
 }
 
 /**
- * idm_consolelog — write one timestamped log line.
+ * idm_consolelog — write one timestamped log line (with automatic newline).
  * Called via the IDM_LOG_INFO() macro which supplies __func__ and __LINE__.
+ * Callers should not include a trailing "\n" in fmt.
  */
 void idm_consolelog(const char *func, int line, const char *level,
                     const char *fmt, ...)
@@ -93,6 +94,7 @@ void idm_consolelog(const char *func, int line, const char *level,
     va_start(args, fmt);
     vfprintf(out, fmt, args);
     va_end(args);
+    fputc('\n', out);
     fflush(out);
     pthread_mutex_unlock(&idm_log_mutex);
 }
