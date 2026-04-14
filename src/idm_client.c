@@ -729,7 +729,6 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                     g_mutex_unlock(mutex);
                     g_message("Associating device %s", sno);
                     g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
-                    IDM_LOG_INFO("device associated sno=%s", sno);
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
                     t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
 #endif
@@ -836,7 +835,6 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                     g_mutex_unlock(mutex);
                     g_message("Inserted new/updated device %s in the list", sno);
                     g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
-                    IDM_LOG_INFO("device associated sno=%s", sno);
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
                     t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
 #endif
@@ -924,7 +922,6 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     getserialnum(ownSerialNo);
     callback=func_callback;
     g_message("TELEMETRY_IDM_DISCOVERY_STARTED:%s", ownSerialNo->str);
-    IDM_LOG_INFO("start_discovery called for serial %s", ownSerialNo->str);
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
     t2_event_s("IDM_DISCOVERY_STARTED_split", ownSerialNo->str);
 #endif
