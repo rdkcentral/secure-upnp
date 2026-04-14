@@ -273,7 +273,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         if(rdkconfig_get(&pass_phrase, &pass_size, se_cert_conf_file) == RDKCONFIG_FAIL)
         {
             g_message("Error in getting passcode\n");
-            IDM_LOG_ERR("rdkconfig_get failed for SE cert passcode\n");
+            IDM_LOG_ERR("rdkconfig_get failed for SE cert passcode");
         }
         else
         {
@@ -292,7 +292,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         else
         {
             g_message(" Failed to generate g_tls cert from SE certificate\n");
-            IDM_LOG_ERR("g_tls_certificate_new_from_file_with_password failed: %s\n",
+            IDM_LOG_ERR("g_tls_certificate_new_from_file_with_password failed: %s",
                         xupnp_error ? xupnp_error->message : "unknown error");
             if(xupnp_error)
             {
@@ -317,14 +317,14 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
             g_message(" Certificate or Key file NULL");
-            IDM_LOG_ERR("certFile or keyFile path is empty (HW cert fallback path)\n");
+            IDM_LOG_ERR("certFile or keyFile path is empty (HW cert fallback path)");
             return  G_TLS_INTERACTION_FAILED;
         }
 
         if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
           g_message(" Certificate or Key file does not exist");
-          IDM_LOG_ERR("certFile or keyFile not found certFile=%s keyFile=%s\n", certFile, keyFile);
+          IDM_LOG_ERR("certFile or keyFile not found certFile=%s keyFile=%s", certFile, keyFile);
           return  G_TLS_INTERACTION_FAILED;
        }
 
@@ -334,7 +334,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
        if(cert == NULL) {
        
           g_message("Certificate creation failed from cert and key files");
-          IDM_LOG_ERR("g_tls_certificate_new_from_files failed certFile=%s keyFile=%s\n", certFile, keyFile);
+          IDM_LOG_ERR("g_tls_certificate_new_from_files failed certFile=%s keyFile=%s", certFile, keyFile);
 
           if(xupnp_error != NULL) {
           
@@ -350,14 +350,14 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
         g_message(" Certificate or Key file NULL");
-        IDM_LOG_ERR("certFile or keyFile path is empty\n");
+        IDM_LOG_ERR("certFile or keyFile path is empty");
         return  G_TLS_INTERACTION_FAILED;
     }
 
     if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
         g_message(" Certificate or Key file does not exist");
-        IDM_LOG_ERR("certFile or keyFile not found certFile=%s keyFile=%s\n", certFile, keyFile);
+        IDM_LOG_ERR("certFile or keyFile not found certFile=%s keyFile=%s", certFile, keyFile);
         return  G_TLS_INTERACTION_FAILED;
     }
 
@@ -367,7 +367,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if(cert == NULL) {
 
         g_message("Certificate creation failed from cert and key files");
-        IDM_LOG_ERR("g_tls_certificate_new_from_files failed certFile=%s keyFile=%s\n", certFile, keyFile);
+        IDM_LOG_ERR("g_tls_certificate_new_from_files failed certFile=%s keyFile=%s", certFile, keyFile);
 
         if(xupnp_error != NULL) {
             g_message("Failure reason for certificate creation: %s\n", xupnp_error->message );
@@ -433,7 +433,7 @@ GError *error = NULL;
     if ( NULL != error ) //Didn't went well
     {
         g_message ("%s  process gw services  Error: %s\n", requestFn, error->message);
-        IDM_LOG_ERR("gupnp_service_proxy_send_action failed fn=%s error=%s\n", requestFn, error->message);
+        IDM_LOG_ERR("gupnp_service_proxy_send_action failed fn=%s error=%s", requestFn, error->message);
         if ( isInCriticalPath ) // Update telemetry
         {
                 g_message("TELEMETRY_XUPNP_PARTIAL_DISCOVERY:%d,%s",error->code, requestFn);
@@ -670,7 +670,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     {
         deviceAddNo--;
         g_message("WARNING - Received a null pointer for broadband device device no %u",deviceAddNo);
-        IDM_LOG_ERR("null pointer received for broadband device no %u\n", deviceAddNo);
+        IDM_LOG_ERR("null pointer received for broadband device no %u", deviceAddNo);
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -738,14 +738,14 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                 else
                 {
                     g_message("In available_cb_bgw gateway device receiver id is NULL");
-                    IDM_LOG_ERR("gateway device receiver id is NULL sno=%s\n", sno);
+                    IDM_LOG_ERR("gateway device receiver id is NULL sno=%s", sno);
                 }
             }
         }
         else
         {
             g_message("Gateway UDN is NULL");
-            IDM_LOG_ERR("gateway UDN is NULL sno=%s\n", sno);
+            IDM_LOG_ERR("gateway UDN is NULL sno=%s", sno);
         }
     }
     g_free(sno);
@@ -761,7 +761,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     {
         deviceAddNo--;
         g_message("WARNING - Received a null pointer for gateway device device no %u",deviceAddNo);
-        IDM_LOG_ERR("null pointer received for gateway device no %u\n", deviceAddNo);
+        IDM_LOG_ERR("null pointer received for gateway device no %u", deviceAddNo);
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -781,7 +781,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     else
     {
         g_critical("Could not allocate memory for Gwydata. Exiting...");
-        IDM_LOG_ERR("could not allocate memory for GwyData, exiting\n");
+        IDM_LOG_ERR("could not allocate memory for GwyData, exiting");
         exit(1);
     }
     gwydata->sproxy = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (dproxy), IDM_SERVICE);
@@ -789,7 +789,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     {
         deviceAddNo--;
         g_message("Unable to get the services, sproxy null. returning");
-        IDM_LOG_ERR("unable to get services sproxy null sno=%s\n", sno ? sno : "NULL");
+        IDM_LOG_ERR("unable to get services sproxy null sno=%s", sno ? sno : "NULL");
         return;
     }
     if (sno != NULL)
@@ -845,14 +845,14 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                 else
                 {
                     g_message("Device receiver id is NULL");
-                    IDM_LOG_ERR("device receiver id is NULL sno=%s\n", sno);
+                    IDM_LOG_ERR("device receiver id is NULL sno=%s", sno);
                 }
             }
         }
         else
         {
             g_message("Device UDN is NULL");
-            IDM_LOG_ERR("device UDN is NULL sno=%s\n", sno);
+            IDM_LOG_ERR("device UDN is NULL sno=%s", sno);
         }
     }
     g_free(sno);
@@ -912,7 +912,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     {
         g_message("some of mandatory values are missing");
         g_message("interface=%s port=%d discovery_interval=%d loss_detection_window=%d\n", dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window);
-        IDM_LOG_ERR("mandatory values missing interface=%s port=%d interval=%d window=%d\n",
+        IDM_LOG_ERR("mandatory values missing interface=%s port=%d interval=%d window=%d",
                     dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window);
         return;
     }
@@ -960,7 +960,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             if(access(se_cert_p12, F_OK ) == -1)
             {
                 g_message("Cannot create p12 cert file");
-                IDM_LOG_ERR("cannot create p12 cert file from %s\n", certFile);
+                IDM_LOG_ERR("cannot create p12 cert file from %s", certFile);
             }
             else
             {
@@ -977,7 +977,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         strncpy(certFile, dc_obj->sslCert, sizeof(certFile) -1);
         strncpy(keyFile, dc_obj->sslKey, sizeof(keyFile) -1);
         g_message("SE HW certificate is not accessible.");
-        IDM_LOG_ERR("SE HW certificate not accessible, falling back to software cert\n");
+        IDM_LOG_ERR("SE HW certificate not accessible, falling back to software cert");
 
     }
 #endif
@@ -986,7 +986,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     if(rvalue==1)
     {
         g_message("id_server_start has facing some issue");
-        IDM_LOG_ERR("idm_server_start failed rvalue=%d\n", rvalue);
+        IDM_LOG_ERR("idm_server_start failed rvalue=%d", rvalue);
         return;
     }
     mutex = g_mutex_new ();
@@ -1053,7 +1053,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
                 if(0 != err)
                 {
                     g_message("%s: create the event handle thread error!\n", __FUNCTION__);
-                    IDM_LOG_ERR("pthread_create EventHandler failed err=%d\n", err);
+                    IDM_LOG_ERR("pthread_create EventHandler failed err=%d", err);
                 }
             }
             cp_bgw = gupnp_control_point_new(upnpContextDeviceProtect, IDM_DP_CLIENT_DEVICE);
@@ -1066,7 +1066,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     else
     {
         g_message("%s:mandatory files doesn't present",__FUNCTION__);
-        IDM_LOG_ERR("mandatory cert/key files not present, running without TLS\n");
+        IDM_LOG_ERR("mandatory cert/key files not present, running without TLS");
     }
 #ifdef GUPNP_0_19
     main_loop = g_main_loop_new (NULL, FALSE);
@@ -1088,7 +1088,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     if (error) {
         g_message ("Error creating the GUPnP context: %s", error->message);
         g_critical("%s:Error creating the XUPnP context on %s:%d Error:%s", __FUNCTION__,dc_obj->interface, CLIENT_CONTEXT_PORT, error->message);
-        IDM_LOG_ERR("GUPnP context creation failed on %s:%d error=%s\n", dc_obj->interface, CLIENT_CONTEXT_PORT, error->message);
+        IDM_LOG_ERR("GUPnP context creation failed on %s:%d error=%s", dc_obj->interface, CLIENT_CONTEXT_PORT, error->message);
         g_error_free (error);
         return;
     }

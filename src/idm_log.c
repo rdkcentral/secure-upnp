@@ -31,10 +31,14 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <errno.h>
+#include <string.h>
 #include "idm_log.h"
 
 static FILE *idm_log_fp = NULL;
 static pthread_mutex_t idm_log_mutex = PTHREAD_MUTEX_INITIALIZER;
+/* Rate-limit fopen() failure reports: log at most once every 60 seconds */
+static time_t idm_log_fopen_fail_last = 0;
 
 /**
  * idm_log_reopen — return the current log fd, reopening if rdklogger has
@@ -58,7 +62,21 @@ static FILE *idm_log_reopen(void)
         }
     }
     if (!idm_log_fp)
+    {
         idm_log_fp = fopen(IDM_LOG_FILE, "a");
+        if (!idm_log_fp)
+        {
+            /* Report fopen failure via stderr, rate-limited to once per 60s */
+            time_t now = time(NULL);
+            if (now - idm_log_fopen_fail_last >= 60)
+            {
+                idm_log_fopen_fail_last = now;
+                fprintf(stderr,
+                        "IDM: fopen(%s) failed: %s\n",
+                        IDM_LOG_FILE, strerror(errno));
+            }
+        }
+    }
     return idm_log_fp;
 }
 
