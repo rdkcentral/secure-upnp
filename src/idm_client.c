@@ -165,11 +165,13 @@ int EventListen(void)
                 if (!strncmp(value_str, "started", 7))
                 {
                     g_message("wan-status returned started");
+                    IDM_LOG_INFO("wan-status started");
                     ret = 0;
                 }
                 else if (!strncmp(value_str, "stopped", 7))
                 {
                     g_message("wan-status returned stopped");
+                    IDM_LOG_INFO("wan-status stopped");
                     ret = -1;
                 }
             }
@@ -280,14 +282,17 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
             len = strcspn(pass_phrase, "\n");
             pass_phrase[len] = '\0';
             g_message("Passcode decoded successfully\n");
+            IDM_LOG_INFO("SE cert passcode decoded");
         }
 
         g_message(" Using SE certificate with pass code \n");
+        IDM_LOG_INFO("using SE certificate with passcode");
 
         cert = g_tls_certificate_new_from_file_with_password(se_cert_p12, pass_phrase, &xupnp_error);
         if(cert)
         {
             g_message(" Successfully generated g_tls cert from SE certificate\n");
+            IDM_LOG_INFO("SE certificate loaded successfully");
         }
         else
         {
@@ -450,6 +455,7 @@ void* verify_devices()
     guint cp_bgw_inactive_count = 0;
     guint cp_bgw_null_count = 0;
     g_message("verify_devices thread started running...");
+    IDM_LOG_INFO("verify_devices thread started");
     //workaround to remove device in second attempt -Start
     usleep(sleep_seconds);
     while(1)
@@ -473,6 +479,7 @@ void* verify_devices()
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp))==FALSE)
             {
                 g_message("Forced rescan failed");
+                IDM_LOG_INFO("gssdp rescan failed (cp)");
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
@@ -511,6 +518,7 @@ void* verify_devices()
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp_bgw))==FALSE)
             {
                 g_message("Forced rescan failed for broadband");
+                IDM_LOG_INFO("gssdp rescan failed (cp_bgw)");
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
@@ -576,17 +584,20 @@ void* stop_discovery_process()
                 if(g_main_loop_is_running(main_loop))
                 {
                     g_message("Quitting main loop..");
+                    IDM_LOG_INFO("quitting main loop");
                     g_main_loop_quit(main_loop);
                     g_message("Quitting main loop done..");
                 }
                 else
                 {
                     g_message("Main loop is not running..");
+                    IDM_LOG_INFO("main loop not running");
                 }
             } 
             else
             {
                 g_message("Main loop is NULL..");
+                IDM_LOG_INFO("main loop is NULL");
             }
             g_message("Stop discovery process done..");
             IDM_LOG_INFO("stop discovery complete");
@@ -637,6 +648,7 @@ gboolean delete_gwyitem(const char* serial_num)
     else
     {
         g_message("Device %s to be removed not in the discovered device list", serial_num);
+        IDM_LOG_INFO("device not found in list for removal sno=%s", serial_num);
     }
     return FALSE;
 }
@@ -656,6 +668,7 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
     if (delete_gwyitem(sno) == FALSE)
     {
         g_message("%s found, but unable to delete it from list", sno);
+        IDM_LOG_ERR("failed to delete device from list sno=%s", sno ? sno : "NULL");
         return;
     }
     else
@@ -670,6 +683,7 @@ static void
 device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
 {
     g_message("In available_bgw found a Broadband device. deviceAddNo = %u ",deviceAddNo);
+    IDM_LOG_INFO("broadband device available cb triggered no=%u", deviceAddNo);
     deviceAddNo++;
     if ((NULL==cp) || (NULL==dproxy))
     {
@@ -684,6 +698,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     {
         deviceAddNo--;
         g_message("Existing available_cb_bgw as SNO is present in list so no update of devices %s device no %u",sno,deviceAddNo);
+        IDM_LOG_INFO("device already in list skipping sno=%s", sno ? sno : "NULL");
         g_free((gpointer)sno);
         return;
     }
@@ -762,6 +777,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
 static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
 {
     g_message("Found a new device. deviceAddNo = %u ",deviceAddNo);
+    IDM_LOG_INFO("new device available cb triggered no=%u", deviceAddNo);
     deviceAddNo++;
     if ((NULL==cp) || (NULL==dproxy))
     {
@@ -776,6 +792,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     {
         deviceAddNo--;
         g_message("Existing as SNO is present in list so no update of devices %s device no %u",sno,deviceAddNo);
+        IDM_LOG_INFO("device already in list skipping sno=%s", sno ? sno : "NULL");
         g_free(sno);
         return;
     }
@@ -1032,11 +1049,13 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         if(access(se_cert_p12, F_OK) == 0)
         {
             g_message("IDM Client: SE HW certificate is available. Creating device protect without extracted files");
+            IDM_LOG_INFO("TLS context: using SE HW certificate");
             upnpContextDeviceProtect = gupnp_context_new_s (dc_obj->interface, dc_obj->port,NULL,NULL, &error);
         }
         else
         {
             g_message("IDM Client: SE HW certificate is not available. Creating device protect with extracted files");
+            IDM_LOG_INFO("TLS context: using extracted cert files");
             upnpContextDeviceProtect = gupnp_context_new_s (dc_obj->interface, dc_obj->port,certFile,keyFile, &error);
         }
 #endif
@@ -1054,6 +1073,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             gupnp_context_set_subscription_timeout(upnpContextDeviceProtect, 0);
             xupnp_tlsinteraction = g_object_new (xupnp_tls_interaction_get_type (), NULL);
             g_message("tls interaction object created");
+            IDM_LOG_INFO("TLS interaction object created");
             // Set TLS config params here.
             g_message("Setting CA file %s", caFile);
             IDM_LOG_INFO("TLS CA file configured");
@@ -1073,6 +1093,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             g_signal_connect (cp_bgw,"device-proxy-unavailable", G_CALLBACK (device_proxy_unavailable_cb_bgw), NULL);
             gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (cp_bgw), TRUE);
             g_message("X1BroadbandGateway controlpoint created for idm");
+            IDM_LOG_INFO("X1BroadbandGateway control point active");
         }
     }
     else
@@ -1087,6 +1108,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
 #endif
 #else
     g_message("IDM is running in non secure mode");
+    IDM_LOG_INFO("UPnP running in non-secure mode");
 #ifndef GUPNP_1_2
 #ifdef GUPNP_0_14
     main_context = g_main_context_new();
@@ -1125,11 +1147,14 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         g_thread_create(verify_devices, NULL,FALSE, NULL);
         g_thread_create(stop_discovery_process, NULL,FALSE, NULL);
         g_message("upnp threads created successfully...\n");
+        IDM_LOG_INFO("UPnP threads started");
     }
     g_message("idm upnp init success\n");
+    IDM_LOG_INFO("IDM UPnP init complete");
     idm_upnp_init_status = TRUE;
     g_main_loop_run (main_loop);
     g_message("%s:%d main loop broken",__FUNCTION__,__LINE__);
+    IDM_LOG_INFO("main loop exited");
     /* emit unavailable signal for the resource connected devices */
 #ifndef IDM_DEBUG
     gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (cp_bgw), FALSE);
@@ -1137,8 +1162,10 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (cp), FALSE);
 #endif
     g_message("invoke free_server_memory");
+    IDM_LOG_INFO("freeing server memory");
     free_server_memory();
     g_message("Invoke remove_entries_in_list");
+    IDM_LOG_INFO("removing device list entries");
     remove_entries_in_list();
     g_main_loop_unref (main_loop);
     main_loop = NULL;
