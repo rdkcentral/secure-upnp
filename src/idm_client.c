@@ -569,6 +569,7 @@ void* stop_discovery_process()
         if(stop_discovery_status)
         {
             g_message("Stop discovery process started..");
+            IDM_LOG_INFO("stop discovery triggered");
             g_message("Checking main loop..");
             if(main_loop)
             {
@@ -588,6 +589,7 @@ void* stop_discovery_process()
                 g_message("Main loop is NULL..");
             }
             g_message("Stop discovery process done..");
+            IDM_LOG_INFO("stop discovery complete");
         }
         sleep(5);
     }
@@ -628,6 +630,7 @@ gboolean delete_gwyitem(const char* serial_num)
         g_free(gwydata);
         g_mutex_unlock(mutex);
         g_message("Deleted device %s from the list", serial_num);
+        IDM_LOG_INFO("device removed from list sno=%s", serial_num);
         g_list_free (lstXdev);
         return TRUE;
     }
@@ -643,6 +646,7 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
 {
     const gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
     g_message ("In unavailable_bgw Device %s went down",sno);
+    IDM_LOG_INFO("device went down sno=%s", sno ? sno : "NULL");
     if((g_strcmp0(g_strstrip(ownSerialNo->str),sno) == 0))
     {
         g_message ("Self Device [%s][%s] not removing",sno,ownSerialNo->str);
@@ -657,6 +661,7 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
     else
     {
         g_message("Deleted %s from list", sno);
+        IDM_LOG_INFO("device deleted from list sno=%s", sno);
     }
     g_free((gpointer)sno);
 }
@@ -688,6 +693,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     if (sno != NULL)
     {
         g_message("In available_cb_bgw Broadband device serial number: %s",sno);
+        IDM_LOG_INFO("broadband device discovered sno=%s", sno);
         g_string_assign(gwydata->serial_num, sno);
         const char* udn = gupnp_device_info_get_udn(GUPNP_DEVICE_INFO (dproxy));
         if (udn != NULL)
@@ -729,6 +735,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                     g_mutex_unlock(mutex);
                     g_message("Associating device %s", sno);
                     g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
+                    IDM_LOG_INFO("device associated sno=%s", sno);
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
                     t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
 #endif
@@ -794,6 +801,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     if (sno != NULL)
     {
         g_message("Device serial number is %s",sno);
+        IDM_LOG_INFO("device discovered sno=%s", sno);
         g_string_assign(gwydata->serial_num, sno);
         const char* udn = gupnp_device_info_get_udn(GUPNP_DEVICE_INFO (dproxy));
         if (udn != NULL)
@@ -835,6 +843,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                     g_mutex_unlock(mutex);
                     g_message("Inserted new/updated device %s in the list", sno);
                     g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
+                    IDM_LOG_INFO("device associated sno=%s", sno);
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
                     t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
 #endif
@@ -915,6 +924,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         return;
     }
     g_message("interface=%s port=%d",dc_obj->interface,dc_obj->port);
+    IDM_LOG_INFO("discovery started interface=%s port=%d", dc_obj->interface, dc_obj->port);
     g_thread_init (NULL);
     g_type_init();
     GError* error = 0;
@@ -962,6 +972,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             else
             {
                 g_message("successfully created p12 cert file");
+                IDM_LOG_INFO("p12 cert file created");
             }
         }
     }
@@ -1004,11 +1015,13 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         if(access(se_cert_p12, F_OK) == 0)
         {
             g_message("IDM Client: SE HW certificate is available. Creating device protect without extracted files");
+            IDM_LOG_INFO("TLS context: using SE HW certificate");
             upnpContextDeviceProtect = gupnp_context_new_s ( NULL,  dc_obj->interface, dc_obj->port,NULL,NULL, &error);
         }
         else
         {
             g_message("IDM Client: SE HW certificate is not available. Creating device protect with extracted files");
+            IDM_LOG_INFO("TLS context: using extracted cert files");
             upnpContextDeviceProtect = gupnp_context_new_s ( NULL,  dc_obj->interface, dc_obj->port,certFile,keyFile, &error);
         }
 #endif
@@ -1037,11 +1050,13 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         else
         {
             g_message("IDM UPnP is running in secure mode");
+            IDM_LOG_INFO("UPnP running in secure mode");
             gupnp_context_set_subscription_timeout(upnpContextDeviceProtect, 0);
             xupnp_tlsinteraction = g_object_new (xupnp_tls_interaction_get_type (), NULL);
             g_message("tls interaction object created");
             // Set TLS config params here.
             g_message("Setting CA file %s", caFile);
+            IDM_LOG_INFO("TLS CA file configured");
             gupnp_context_set_tls_params(upnpContextDeviceProtect,caFile,NULL, xupnp_tlsinteraction);
             if(idm_upnp_init_status == FALSE) //Start event_handle_thread only for first time.
             {
