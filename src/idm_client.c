@@ -59,6 +59,10 @@
 #ifdef ENABLE_HW_CERT_USAGE
 #include "rdkconfig.h"
 #endif
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+#include <telemetry_busmessage_sender.h>
+#endif
+#include "idm_log.h"
 #define CLIENT_CONTEXT_PORT 50767
 #define IDM_CLIENT_DEVICE "urn:schemas-upnp-org:device:IDM:1"
 #define IDM_SERVICE "urn:schemas-upnp-org:service:X1IDM:1"
@@ -75,7 +79,6 @@ char se_cert_conf_file[128];
 
 static int fd = -1;
 static gboolean idm_upnp_init_status = FALSE;
-static char accountId[ACCOUNTID_SIZE];
 static GUPnPContext *upnpContextDeviceProtect;
 static GMainLoop *main_loop;
 typedef GTlsInteraction XupnpTlsInteraction;
@@ -270,6 +273,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         if(rdkconfig_get(&pass_phrase, &pass_size, se_cert_conf_file) == RDKCONFIG_FAIL)
         {
             g_message("Error in getting passcode\n");
+            IDM_LOG_ERR("rdkconfig_get failed for SE cert passcode");
         }
         else
         {
@@ -288,6 +292,8 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         else
         {
             g_message(" Failed to generate g_tls cert from SE certificate\n");
+            IDM_LOG_ERR("g_tls_certificate_new_from_file_with_password failed: %s",
+                        xupnp_error ? xupnp_error->message : "unknown error");
             if(xupnp_error)
             {
                 g_message(" %s\n",xupnp_error->message);
@@ -311,12 +317,14 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
             g_message(" Certificate or Key file NULL");
+            IDM_LOG_ERR("certFile or keyFile path is empty (HW cert fallback path)");
             return  G_TLS_INTERACTION_FAILED;
         }
 
         if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
           g_message(" Certificate or Key file does not exist");
+          IDM_LOG_ERR("certFile or keyFile not found");
           return  G_TLS_INTERACTION_FAILED;
        }
 
@@ -326,6 +334,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
        if(cert == NULL) {
        
           g_message("Certificate creation failed from cert and key files");
+          IDM_LOG_ERR("g_tls_certificate_new_from_files failed");
 
           if(xupnp_error != NULL) {
           
@@ -341,12 +350,14 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
         g_message(" Certificate or Key file NULL");
+        IDM_LOG_ERR("certFile or keyFile path is empty");
         return  G_TLS_INTERACTION_FAILED;
     }
 
     if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
         g_message(" Certificate or Key file does not exist");
+        IDM_LOG_ERR("certFile or keyFile not found");
         return  G_TLS_INTERACTION_FAILED;
     }
 
@@ -356,6 +367,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if(cert == NULL) {
 
         g_message("Certificate creation failed from cert and key files");
+        IDM_LOG_ERR("g_tls_certificate_new_from_files failed");
 
         if(xupnp_error != NULL) {
             g_message("Failure reason for certificate creation: %s\n", xupnp_error->message );
@@ -421,6 +433,7 @@ GError *error = NULL;
     if ( NULL != error ) //Didn't went well
     {
         g_message ("%s  process gw services  Error: %s\n", requestFn, error->message);
+        IDM_LOG_ERR("gupnp_service_proxy_send_action failed fn=%s error=%s", requestFn, error->message);
         if ( isInCriticalPath ) // Update telemetry
         {
                 g_message("TELEMETRY_XUPNP_PARTIAL_DISCOVERY:%d,%s",error->code, requestFn);
@@ -657,6 +670,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     {
         deviceAddNo--;
         g_message("WARNING - Received a null pointer for broadband device device no %u",deviceAddNo);
+        IDM_LOG_ERR("null pointer received for broadband device no %u", deviceAddNo);
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -710,51 +724,27 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                         g_message("GatewayIPv6=%s",di.Ipv6);
                         g_free(temp);
                     }
-                    if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy_i, "GetAccountId","AccountId", &temp, FALSE))
-                    {
-                        int valid_account=1,loop=0;
-                        g_message("Discovered device sent accountId as %s",temp);
-                        for(loop=0;loop<(int)(strlen(temp));loop++)
-                        {
-                            if(temp[loop] < '0' || temp[loop] > '9')
-                            {
-                                g_message("not a valid account due to %c presence",temp[loop]);
-                                valid_account=0;
-                                break;
-                            }
-                        }
-                        if(valid_account==1)
-                        {
-                            g_message("Discovered device AccountId is valid");
-                            if(g_strcmp0(g_strstrip(accountId),temp)==0)
-                            {
-                                g_mutex_lock(mutex);
-                                xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
-                                g_mutex_unlock(mutex);
-                                g_message("Inserted new/updated device %s in the list as accountId %s is same", sno,temp);
-                                callback(&di,1,1);
-                            }
-                            else
-                            {
-                                g_message("Not adding to the list as accountId %s is different",temp);
-                            }
-                        }
-                        else
-                        {
-                            g_message("Its not valid accountID so accountId %s not adding to the list",temp);
-                        }
-                        g_free(temp);
-                    }
+                    g_mutex_lock(mutex);
+                    xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
+                    g_mutex_unlock(mutex);
+                    g_message("Associating device %s", sno);
+                    g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+                    t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
+#endif
+                    callback(&di,1,1);
                 }
                 else
                 {
                     g_message("In available_cb_bgw gateway device receiver id is NULL");
+                    IDM_LOG_ERR("gateway device receiver id is NULL sno=%s", sno);
                 }
             }
         }
         else
         {
             g_message("Gateway UDN is NULL");
+            IDM_LOG_ERR("gateway UDN is NULL sno=%s", sno);
         }
     }
     g_free(sno);
@@ -770,6 +760,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     {
         deviceAddNo--;
         g_message("WARNING - Received a null pointer for gateway device device no %u",deviceAddNo);
+        IDM_LOG_ERR("null pointer received for gateway device no %u", deviceAddNo);
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -789,6 +780,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     else
     {
         g_critical("Could not allocate memory for Gwydata. Exiting...");
+        IDM_LOG_ERR("could not allocate memory for GwyData, exiting");
         exit(1);
     }
     gwydata->sproxy = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (dproxy), IDM_SERVICE);
@@ -796,6 +788,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     {
         deviceAddNo--;
         g_message("Unable to get the services, sproxy null. returning");
+        IDM_LOG_ERR("unable to get services sproxy null sno=%s", sno ? sno : "NULL");
         return;
     }
     if (sno != NULL)
@@ -841,14 +834,24 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                     xdevlist = g_list_insert_sorted_with_data(xdevlist, gwydata,(GCompareDataFunc)g_list_compare_sno, NULL);
                     g_mutex_unlock(mutex);
                     g_message("Inserted new/updated device %s in the list", sno);
+                    g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+                    t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
+#endif
                     callback(&di,1,0);
                 }
                 else
+                {
                     g_message("Device receiver id is NULL");
+                    IDM_LOG_ERR("device receiver id is NULL sno=%s", sno);
+                }
             }
         }
         else
+        {
             g_message("Device UDN is NULL");
+            IDM_LOG_ERR("device UDN is NULL sno=%s", sno);
+        }
     }
     g_free(sno);
     deviceAddNo--;
@@ -907,6 +910,8 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     {
         g_message("some of mandatory values are missing");
         g_message("interface=%s port=%d discovery_interval=%d loss_detection_window=%d\n", dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window);
+        IDM_LOG_ERR("mandatory values missing interface=%s port=%d interval=%d window=%d",
+                    dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window);
         return;
     }
     g_message("interface=%s port=%d",dc_obj->interface,dc_obj->port);
@@ -916,23 +921,9 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     ownSerialNo=g_string_new(NULL);
     getserialnum(ownSerialNo);
     callback=func_callback;
-#ifndef IDM_DEBUG
-    int ind=-1;
-    errno_t rc = -1;
-    memset(accountId,0,ACCOUNTID_SIZE);
-    while(1)
-    {
-        getAccountId(accountId);
-        g_message("%s:AccountId=%s",__FUNCTION__,accountId);
-        rc = strcasecmp_s("unknown",strlen("unknown"),accountId,&ind);
-        ERR_CHK(rc);
-        if(ind || rc != EOK)
-        {
-            break;
-        }
-        sleep(5);
-    }
-    g_message("%s:Account ID complete.AccountId = %s", __FUNCTION__, accountId);
+    g_message("TELEMETRY_IDM_DISCOVERY_STARTED:%s", ownSerialNo->str);
+#if defined(ENABLE_FEATURE_TELEMETRY2_0)
+    t2_event_s("IDM_DISCOVERY_STARTED_split", ownSerialNo->str);
 #endif
 #ifndef IDM_DEBUG
 #ifndef ENABLE_HW_CERT_USAGE
@@ -966,6 +957,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             if(access(se_cert_p12, F_OK ) == -1)
             {
                 g_message("Cannot create p12 cert file");
+                IDM_LOG_ERR("cannot create p12 cert file");
             }
             else
             {
@@ -982,6 +974,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         strncpy(certFile, dc_obj->sslCert, sizeof(certFile) -1);
         strncpy(keyFile, dc_obj->sslKey, sizeof(keyFile) -1);
         g_message("SE HW certificate is not accessible.");
+        IDM_LOG_ERR("SE HW certificate not accessible, falling back to software cert");
 
     }
 #endif
@@ -990,6 +983,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     if(rvalue==1)
     {
         g_message("id_server_start has facing some issue");
+        IDM_LOG_ERR("idm_server_start failed rvalue=%d", rvalue);
         return;
     }
     mutex = g_mutex_new ();
@@ -1056,6 +1050,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
                 if(0 != err)
                 {
                     g_message("%s: create the event handle thread error!\n", __FUNCTION__);
+                    IDM_LOG_ERR("pthread_create EventHandler failed err=%d", err);
                 }
             }
             cp_bgw = gupnp_control_point_new(upnpContextDeviceProtect, IDM_DP_CLIENT_DEVICE);
@@ -1068,6 +1063,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     else
     {
         g_message("%s:mandatory files doesn't present",__FUNCTION__);
+        IDM_LOG_ERR("mandatory cert/key files not present, running without TLS");
     }
 #ifdef GUPNP_0_19
     main_loop = g_main_loop_new (NULL, FALSE);
@@ -1089,6 +1085,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     if (error) {
         g_message ("Error creating the GUPnP context: %s", error->message);
         g_critical("%s:Error creating the XUPnP context on %s:%d Error:%s", __FUNCTION__,dc_obj->interface, CLIENT_CONTEXT_PORT, error->message);
+        IDM_LOG_ERR("GUPnP context creation failed on %s:%d error=%s", dc_obj->interface, CLIENT_CONTEXT_PORT, error->message);
         g_error_free (error);
         return;
     }
