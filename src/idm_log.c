@@ -72,8 +72,8 @@ static FILE *idm_log_reopen(void)
             {
                 idm_log_fopen_fail_last = now;
                 fprintf(stderr,
-                        "IDM: fopen(%s) failed: %s\n",
-                        IDM_LOG_FILE, strerror(errno));
+                        "IDM: log file unavailable: %s\n",
+                        strerror(errno));
             }
         }
     }

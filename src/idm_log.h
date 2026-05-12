@@ -20,7 +20,7 @@
  * @file idm_log.h
  * @brief IDM logging interface — shared between idm_client.c and idm_server.c.
  *
- * All writes go to /rdklogs/logs/Consolelog.txt.0.
+ * All writes go to /rdklogs/logs/InterDeviceManager.txt.0.
  * Log rotation is handled externally by rdklogger; the open file descriptor
  * is transparently reopened after rotation via inode comparison.
  */
@@ -28,10 +28,10 @@
 #ifndef IDM_LOG_H
 #define IDM_LOG_H
 
-#define IDM_LOG_FILE "/rdklogs/logs/Consolelog.txt.0"
+#define IDM_LOG_FILE "/rdklogs/logs/InterDeviceManager.txt.0"
 
 /**
- * IDM_LOG_INFO(fmt, ...) — write a timestamped INFO line to Consolelog.txt.0.
+ * IDM_LOG_INFO(fmt, ...) — write a timestamped INFO line to InterDeviceManager.txt.0.
  * IDM_LOG_ERR(fmt, ...) — write a timestamped ERROR line.
  *
  * A newline is appended automatically; do not include a trailing "\n" in fmt.

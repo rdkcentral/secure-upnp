@@ -324,7 +324,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
           g_message(" Certificate or Key file does not exist");
-          IDM_LOG_ERR("certFile or keyFile not found certFile=%s keyFile=%s", certFile, keyFile);
+          IDM_LOG_ERR("certFile or keyFile not found");
           return  G_TLS_INTERACTION_FAILED;
        }
 
@@ -334,7 +334,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
        if(cert == NULL) {
        
           g_message("Certificate creation failed from cert and key files");
-          IDM_LOG_ERR("g_tls_certificate_new_from_files failed certFile=%s keyFile=%s", certFile, keyFile);
+          IDM_LOG_ERR("g_tls_certificate_new_from_files failed");
 
           if(xupnp_error != NULL) {
           
@@ -357,7 +357,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
         g_message(" Certificate or Key file does not exist");
-        IDM_LOG_ERR("certFile or keyFile not found certFile=%s keyFile=%s", certFile, keyFile);
+        IDM_LOG_ERR("certFile or keyFile not found");
         return  G_TLS_INTERACTION_FAILED;
     }
 
@@ -367,7 +367,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if(cert == NULL) {
 
         g_message("Certificate creation failed from cert and key files");
-        IDM_LOG_ERR("g_tls_certificate_new_from_files failed certFile=%s keyFile=%s", certFile, keyFile);
+        IDM_LOG_ERR("g_tls_certificate_new_from_files failed");
 
         if(xupnp_error != NULL) {
             g_message("Failure reason for certificate creation: %s\n", xupnp_error->message );
@@ -957,7 +957,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             if(access(se_cert_p12, F_OK ) == -1)
             {
                 g_message("Cannot create p12 cert file");
-                IDM_LOG_ERR("cannot create p12 cert file from %s", certFile);
+                IDM_LOG_ERR("cannot create p12 cert file");
             }
             else
             {
