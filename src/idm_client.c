@@ -43,6 +43,7 @@
 #include <string.h>
 #include <glib/gstdio.h>
 #include "rdk_safeclib.h"
+#include "ccsp_trace.h"
 #ifndef BROADBAND
 #ifdef ENABLE_RFC
 #include "rfcapi.h"
@@ -62,7 +63,6 @@
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
 #include <telemetry_busmessage_sender.h>
 #endif
-#include "ccsp_trace.h"
 #define CLIENT_CONTEXT_PORT 50767
 #define IDM_CLIENT_DEVICE "urn:schemas-upnp-org:device:IDM:1"
 #define IDM_SERVICE "urn:schemas-upnp-org:service:X1IDM:1"

@@ -261,9 +261,13 @@ BOOL getUidfromRecvId()
         g_string_append(recv_id, g_strstrip(tokens[loopvar++]));
     }
     if(result == TRUE)
+    {
         CcspTraceInfo(("getUidfromRecvId: recvId: %s", recv_id->str));
+    }
     else
+    {
         CcspTraceInfo(("%s: toklength is %u" ,__FUNCTION__, toklength));
+    }
     g_strfreev(tokens);
     return result;
 }
