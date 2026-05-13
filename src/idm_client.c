@@ -427,7 +427,7 @@ GError *error = NULL;
         CcspTraceError(("gupnp_service_proxy_send_action failed fn=%s error=%s", requestFn, error->message));
         if ( isInCriticalPath ) // Update telemetry
         {
-                g_message("TELEMETRY_XUPNP_PARTIAL_DISCOVERY:%d,%s",error->code, requestFn);
+                CcspTraceError(("TELEMETRY_XUPNP_PARTIAL_DISCOVERY:%d,%s", error->code, requestFn));
         }
         g_clear_error(&error);
         return FALSE;
@@ -898,7 +898,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     ownSerialNo=g_string_new(NULL);
     getserialnum(ownSerialNo);
     callback=func_callback;
-    g_message("TELEMETRY_IDM_DISCOVERY_STARTED:%s", ownSerialNo->str);
+    CcspTraceInfo(("TELEMETRY_IDM_DISCOVERY_STARTED:%s", ownSerialNo->str));
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
     t2_event_s("IDM_DISCOVERY_STARTED_split", ownSerialNo->str);
 #endif
