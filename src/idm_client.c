@@ -272,7 +272,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
 
         if(rdkconfig_get(&pass_phrase, &pass_size, se_cert_conf_file) == RDKCONFIG_FAIL)
         {
-            CcspTraceInfo(("Error in getting passcode"));
+            CcspTraceError(("Error in getting passcode"));
         }
         else
         {
@@ -290,7 +290,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         }
         else
         {
-            CcspTraceInfo((" Failed to generate g_tls cert from SE certificate"));
+            CcspTraceError((" Failed to generate g_tls cert from SE certificate"));
             if(xupnp_error)
             {
                 CcspTraceDebug((" %s",xupnp_error->message));
@@ -313,7 +313,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     {
         if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
-            CcspTraceInfo((" Certificate or Key file NULL"));
+            CcspTraceError((" Certificate or Key file NULL"));
             return  G_TLS_INTERACTION_FAILED;
         }
 
@@ -328,11 +328,11 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
                                                 &xupnp_error);
        if(cert == NULL) {
        
-          CcspTraceInfo(("Certificate creation failed from cert and key files"));
+          CcspTraceError(("Certificate creation failed from cert and key files"));
 
           if(xupnp_error != NULL) {
           
-                CcspTraceInfo(("Failure reason for certificate creation: %s", xupnp_error->message));
+                CcspTraceError(("Failure reason for certificate creation: %s", xupnp_error->message));
                 g_clear_error(&xupnp_error);
             }
             return  G_TLS_INTERACTION_FAILED;
@@ -343,7 +343,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     // Normal certificate
     if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
-        CcspTraceInfo((" Certificate or Key file NULL"));
+        CcspTraceError((" Certificate or Key file NULL"));
         return  G_TLS_INTERACTION_FAILED;
     }
 
@@ -358,10 +358,10 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
             &xupnp_error);
     if(cert == NULL) {
 
-        CcspTraceInfo(("Certificate creation failed from cert and key files"));
+        CcspTraceError(("Certificate creation failed from cert and key files"));
 
         if(xupnp_error != NULL) {
-            CcspTraceInfo(("Failure reason for certificate creation: %s", xupnp_error->message));
+            CcspTraceError(("Failure reason for certificate creation: %s", xupnp_error->message));
             g_clear_error(&xupnp_error);
           }
           return  G_TLS_INTERACTION_FAILED;
@@ -423,7 +423,7 @@ GError *error = NULL;
 #endif
     if ( NULL != error ) //Didn't went well
     {
-        CcspTraceInfo(("%s  process gw services  Error: %s", requestFn, error->message));
+        CcspTraceError(("%s  process gw services  Error: %s", requestFn, error->message));
         if ( isInCriticalPath ) // Update telemetry
         {
                 CcspTraceInfo(("TELEMETRY_XUPNP_PARTIAL_DISCOVERY:%d,%s",error->code, requestFn));
@@ -462,12 +462,12 @@ void* verify_devices()
             cp_bgw_null_count = 0;
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp))==FALSE)
             {
-                CcspTraceInfo(("Forced rescan failed"));
+                CcspTraceError(("Forced rescan failed"));
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
                     //xupnp thread  is stuck for 5 minutes
-                    CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
+                    CcspTraceError(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                     cp_bgw_inactive_count = 0;
                     v_secure_system("touch /tmp/idm_upnp_not_operational");
                 }
@@ -487,7 +487,7 @@ void* verify_devices()
             if(cp_bgw_null_count > 5)
             {
                 //xupnp got stuck for 5 minutes
-                CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
+                CcspTraceError(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                 cp_bgw_null_count = 0;
                 v_secure_system("touch /tmp/idm_upnp_not_operational");
                 // this is for information to confirm upnp locked with date and time
@@ -500,12 +500,12 @@ void* verify_devices()
             cp_bgw_null_count = 0;
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp_bgw))==FALSE)
             {
-                CcspTraceInfo(("Forced rescan failed for broadband"));
+                CcspTraceError(("Forced rescan failed for broadband"));
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
                     //xupnp got stuck for 5 minutes
-                    CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
+                    CcspTraceError(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                     cp_bgw_inactive_count = 0;
                     v_secure_system("touch /tmp/idm_upnp_not_operational");
                     // this is for information to confirm upnp locked with date and time
@@ -527,7 +527,7 @@ void* verify_devices()
             if(cp_bgw_null_count > 5)
             {
                 //xupnp got stuck for 5 minutes
-                CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
+                CcspTraceError(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                 cp_bgw_null_count = 0;
                 v_secure_system("touch /tmp/idm_upnp_not_operational");
                 // this is for information to confirm upnp locked with date and time
@@ -575,7 +575,7 @@ void* stop_discovery_process()
             } 
             else
             {
-                CcspTraceInfo(("Main loop is NULL.."));
+                CcspTraceError(("Main loop is NULL.."));
             }
             CcspTraceInfo(("Stop discovery process done.."));
         }
@@ -641,7 +641,7 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
     }
     if (delete_gwyitem(sno) == FALSE)
     {
-        CcspTraceInfo(("%s found, but unable to delete it from list", sno));
+        CcspTraceError(("%s found, but unable to delete it from list", sno));
         return;
     }
     else
@@ -659,7 +659,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     if ((NULL==cp) || (NULL==dproxy))
     {
         deviceAddNo--;
-        CcspTraceInfo(("WARNING - Received a null pointer for broadband device device no %u",deviceAddNo));
+        CcspTraceError(("WARNING - Received a null pointer for broadband device device no %u",deviceAddNo));
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -725,13 +725,13 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                 }
                 else
                 {
-                    CcspTraceInfo(("In available_cb_bgw gateway device receiver id is NULL"));
+                    CcspTraceError(("In available_cb_bgw gateway device receiver id is NULL"));
                 }
             }
         }
         else
         {
-            CcspTraceInfo(("Gateway UDN is NULL"));
+            CcspTraceError(("Gateway UDN is NULL"));
         }
     }
     g_free(sno);
@@ -746,7 +746,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     if ((NULL==cp) || (NULL==dproxy))
     {
         deviceAddNo--;
-        CcspTraceInfo(("WARNING - Received a null pointer for gateway device device no %u",deviceAddNo));
+        CcspTraceError(("WARNING - Received a null pointer for gateway device device no %u",deviceAddNo));
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -772,7 +772,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     if(!gwydata->sproxy)
     {
         deviceAddNo--;
-        CcspTraceInfo(("Unable to get the services, sproxy null. returning"));
+        CcspTraceError(("Unable to get the services, sproxy null. returning"));
         return;
     }
     if (sno != NULL)
@@ -826,13 +826,13 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                 }
                 else
                 {
-                    CcspTraceInfo(("Device receiver id is NULL"));
+                    CcspTraceError(("Device receiver id is NULL"));
                 }
             }
         }
         else
         {
-            CcspTraceInfo(("Device UDN is NULL"));
+            CcspTraceError(("Device UDN is NULL"));
         }
     }
     g_free(sno);
@@ -890,7 +890,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     int rvalue=0;
     if(!(dc_obj->interface)||(dc_obj->port)==0||(dc_obj->discovery_interval)==0||(dc_obj->loss_detection_window)==0)
     {
-        CcspTraceInfo(("some of mandatory values are missing"));
+        CcspTraceError(("some of mandatory values are missing"));
         CcspTraceInfo(("interface=%s port=%d discovery_interval=%d loss_detection_window=%d", dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window));
         return;
     }
@@ -936,7 +936,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             v_secure_system("ln -sf %s %s", certFile, se_cert_p12);
             if(access(se_cert_p12, F_OK ) == -1)
             {
-                CcspTraceInfo(("Cannot create p12 cert file"));
+                CcspTraceError(("Cannot create p12 cert file"));
             }
             else
             {
@@ -952,7 +952,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         strncpy(caFile, dc_obj->sslCA, sizeof(caFile) -1);
         strncpy(certFile, dc_obj->sslCert, sizeof(certFile) -1);
         strncpy(keyFile, dc_obj->sslKey, sizeof(keyFile) -1);
-        CcspTraceInfo(("SE HW certificate is not accessible."));
+        CcspTraceError(("SE HW certificate is not accessible."));
 
     }
 #endif
@@ -960,7 +960,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     rvalue=idm_server_start(dc_obj->interface, dc_obj->base_mac);
     if(rvalue==1)
     {
-        CcspTraceInfo(("id_server_start has facing some issue"));
+        CcspTraceError(("id_server_start has facing some issue"));
         return;
     }
     mutex = g_mutex_new ();
@@ -1025,7 +1025,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
                 int err = pthread_create(&event_handle_thread, NULL,&EventHandler,NULL);
                 if(0 != err)
                 {
-                    CcspTraceInfo(("%s: create the event handle thread error!", __FUNCTION__));
+                    CcspTraceError(("%s: create the event handle thread error!", __FUNCTION__));
                 }
             }
             cp_bgw = gupnp_control_point_new(upnpContextDeviceProtect, IDM_DP_CLIENT_DEVICE);
@@ -1057,7 +1057,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     context = gupnp_context_new (dc_obj->interface, CLIENT_CONTEXT_PORT, &error);
 #endif
     if (error) {
-        CcspTraceInfo(("Error creating the GUPnP context: %s", error->message));
+        CcspTraceError(("Error creating the GUPnP context: %s", error->message));
         CcspTraceError(("%s:Error creating the XUPnP context on %s:%d Error:%s", __FUNCTION__,dc_obj->interface, CLIENT_CONTEXT_PORT, error->message));
         g_error_free (error);
         return;

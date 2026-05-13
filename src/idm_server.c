@@ -271,7 +271,7 @@ BOOL getUUID(char *outValue)
 {
     BOOL result = FALSE;
     if (!check_null_idm(outValue)) {
-        CcspTraceInfo(("getUUID : NULL string !"));
+        CcspTraceError(("getUUID : NULL string !"));
         return result;
     }
     if (getUidfromRecvId()){
@@ -286,7 +286,7 @@ BOOL getUUID(char *outValue)
     }
     else
     {
-        CcspTraceInfo(("getUUID : could not get UUID"));
+        CcspTraceError(("getUUID : could not get UUID"));
     }
     return result;
 }
@@ -353,7 +353,7 @@ int idm_server_start(char* Interface, char * base_mac)
         CcspTraceInfo(("created new upnpContext"));
         if (error)
         {
-            CcspTraceInfo(("%s:Error creating the Device Protection Broadcast context: %s", __FUNCTION__,error->message));
+            CcspTraceError(("%s:Error creating the Device Protection Broadcast context: %s", __FUNCTION__,error->message));
             /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
             g_clear_error(&error);
         }
@@ -372,7 +372,7 @@ int idm_server_start(char* Interface, char * base_mac)
             upnpIdService = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (dev), IDM_DP_SERVICE);
             if (!upnpIdService)
             {
-                CcspTraceInfo(("Cannot get X1Identity service"));
+                CcspTraceError(("Cannot get X1Identity service"));
             }
             else
             {
@@ -412,7 +412,7 @@ int idm_server_start(char* Interface, char * base_mac)
     server_upnpContext = gupnp_context_new (interface, SERVER_CONTEXT_PORT, &error);
 #endif
     if (error) {
-        CcspTraceInfo(("Error creating the Broadcast context: %s", error->message));
+        CcspTraceError(("Error creating the Broadcast context: %s", error->message));
         /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
         g_clear_error(&error);
         return 1;
