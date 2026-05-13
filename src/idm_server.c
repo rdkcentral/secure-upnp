@@ -146,7 +146,7 @@ xmlDoc * open_document(const char * file_name)
     ret = xmlReadFile(file_name, NULL, 0);
     if (ret == NULL)
     {
-        //CcspTraceError(("Failed to parse %s", file_name));
+        //g_printerr("Failed to parse %s\n", file_name);
         return NULL;
     }
     return ret;
@@ -341,13 +341,11 @@ int idm_server_start(char* Interface, char * base_mac)
         if(access(se_cert_p12, F_OK) == 0)
         {
             CcspTraceInfo(("IDM Server: SE HW certificate is available. Creating device protect without extracted files"));
-            CcspTraceInfo(("IDM Server: SE HW certificate is available. Creating device protect without extracted files"));
             CcspTraceDebug(("server TLS context: using SE HW certificate"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( NULL,interface,DEVICE_PROTECTION_CONTEXT_PORT,NULL,NULL, &error);
         }
         else
         {
-            CcspTraceInfo(("IDM Server: SE HW certificate is not available. Creating device protect with extracted files"));
             CcspTraceInfo(("IDM Server: SE HW certificate is not available. Creating device protect with extracted files"));
             CcspTraceDebug(("server TLS context: using extracted cert files"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( NULL,interface,DEVICE_PROTECTION_CONTEXT_PORT,certFile,keyFile, &error);
@@ -359,11 +357,13 @@ int idm_server_start(char* Interface, char * base_mac)
 #else
         if(access(se_cert_p12, F_OK) == 0)
         {
+            CcspTraceInfo(("IDM Server: SE HW certificate is available. Creating device protect without extracted files"));
             CcspTraceDebug(("server TLS context: using SE HW certificate"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( interface,DEVICE_PROTECTION_CONTEXT_PORT,NULL,NULL, &error);
         }
         else 
         {
+            CcspTraceInfo(("IDM Server: SE HW certificate is not available. Creating device protect with extracted files"));
             CcspTraceDebug(("server TLS context: using extracted cert files"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( interface,DEVICE_PROTECTION_CONTEXT_PORT,certFile,keyFile, &error);
         }
@@ -373,8 +373,7 @@ int idm_server_start(char* Interface, char * base_mac)
         CcspTraceInfo(("server UPnP context created"));
         if (error)
         {
-            CcspTraceError(("%s:Error creating the Device Protection Broadcast context: %s",
-                    __FUNCTION__,error->message));
+            CcspTraceInfo(("%s:Error creating the Device Protection Broadcast context: %s", __FUNCTION__,error->message));
             CcspTraceError(("server TLS context creation failed: %s", error ? error->message : "unknown"));
             /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
             g_clear_error(&error);
@@ -395,7 +394,7 @@ int idm_server_start(char* Interface, char * base_mac)
             upnpIdService = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (dev), IDM_DP_SERVICE);
             if (!upnpIdService)
             {
-                CcspTraceInfo(("Cannot get X1Identity service\n"));
+                CcspTraceInfo(("Cannot get X1Identity service"));
                 CcspTraceError(("failed to get X1Identity UPnP service"));
             }
             else
@@ -440,8 +439,7 @@ int idm_server_start(char* Interface, char * base_mac)
     server_upnpContext = gupnp_context_new (interface, SERVER_CONTEXT_PORT, &error);
 #endif
     if (error) {
-        CcspTraceError(("Error creating the Broadcast context: %s",
-                error->message));
+        CcspTraceInfo(("Error creating the Broadcast context: %s", error->message));
         CcspTraceError(("server context creation failed: %s", error ? error->message : "unknown"));
         /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
         g_clear_error(&error);
@@ -468,7 +466,7 @@ int idm_server_start(char* Interface, char * base_mac)
     g_signal_connect (upnpService, "action-invoked::GetGatewayIPv6", G_CALLBACK (get_gwyipv6_cb), NULL);
     g_signal_connect (upnpService, "query-variable::GatewayIPv6", G_CALLBACK (query_gwyipv6_cb), NULL);
 #endif
-    CcspTraceInfo(("completed %s\n",__FUNCTION__));
+    CcspTraceInfo(("completed %s",__FUNCTION__));
     CcspTraceInfo(("IDM server init complete"));
     return 0;
 }
