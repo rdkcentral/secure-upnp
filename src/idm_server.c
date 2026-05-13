@@ -145,7 +145,7 @@ xmlDoc * open_document(const char * file_name)
     ret = xmlReadFile(file_name, NULL, 0);
     if (ret == NULL)
     {
-        //g_printerr("Failed to parse %s\n", file_name);
+        //CcspTraceError(("Failed to parse %s\n", file_name));
         return NULL;
     }
     return ret;
@@ -180,7 +180,7 @@ int set_content(xmlDoc* doc, const char * node_name, const char * new_value)
     target_node = get_node_by_name(root_element, node_name);
     if (target_node==NULL)
     {
-        g_printerr("Couldn't locate the Target node\n");
+        CcspTraceError(("Couldn't locate the Target node\n"));
         CcspTraceError(("XML: target node not found"));
         return 1;
     }
@@ -193,32 +193,32 @@ BOOL updatexmldata(const char* xmlfilename, const char* struuid,const char* seri
     xmlDoc * doc = open_document(xmlfilename);
     if (doc == NULL)
     {
-        g_printerr ("Error reading the Device XML file\n");
+        CcspTraceError(("Error reading the Device XML file\n"));
         CcspTraceError(("failed to read device XML file"));
         return FALSE;
     }
     if (set_content(doc, "UDN", struuid)!=0)
     {
-        g_printerr ("Error setting the unique device id in conf xml\n");
+        CcspTraceError(("Error setting the unique device id in conf xml\n"));
         CcspTraceError(("failed to set UDN in device XML"));
         return FALSE;
     }
     if (set_content(doc, "serialNumber", serialno)!=0)
     {
-        g_printerr ("Error setting the serial number in conf xml\n");
+        CcspTraceError(("Error setting the serial number in conf xml\n"));
         CcspTraceError(("failed to set serial number in device XML"));
         return FALSE;
     }
     FILE *fp = fopen(xmlfilename, "w");
     if (fp==NULL)
     {
-        g_printerr ("Error opening the conf xml file for writing\n");
+        CcspTraceError(("Error opening the conf xml file for writing\n"));
         CcspTraceError(("failed to open device XML for writing"));
         return FALSE;
     }
     else if (xmlDocFormatDump(fp, doc, 1) == -1)
     {
-        g_printerr ("Could not write the conf to xml file\n");
+        CcspTraceError(("Could not write the conf to xml file\n"));
         CcspTraceError(("failed to write device XML file"));
         /*Coverity Fix CID 125137,28460  RESOURCE_LEAK */
         fclose(fp);
@@ -241,13 +241,13 @@ void free_server_memory()
     g_clear_object (&baseDev);
     g_clear_object (&server_upnpContext);
 #else
-    g_message("Setting root device set as false%s",__FUNCTION__);
+    CcspTraceInfo(("Setting root device set as false%s",__FUNCTION__));
     gupnp_root_device_set_available (dev, FALSE);
-    g_message("Clearing upnpIdService %s",__FUNCTION__);
+    CcspTraceInfo(("Clearing upnpIdService %s",__FUNCTION__));
     g_clear_object(&upnpIdService);
-    g_message("Clearing dev %s",__FUNCTION__);
+    CcspTraceInfo(("Clearing dev %s",__FUNCTION__));
     g_clear_object(&dev);
-    g_message("Clearing server_upnpContextDeviceProtect %s",__FUNCTION__);
+    CcspTraceInfo(("Clearing server_upnpContextDeviceProtect %s",__FUNCTION__));
     g_clear_object(&server_upnpContextDeviceProtect);
 #endif
 }
@@ -323,7 +323,7 @@ int idm_server_start(char* Interface, char * base_mac)
         int result = updatexmldata("/etc/xupnp/IDM_DP.xml",struuid_dp,serial_num->str);
         if (!result)
         {
-            fprintf(stderr,"Failed to open the device xml file /etc/xupnp/IDM_DP.xml\n");
+            CcspTraceError(("failed to open device XML file /etc/xupnp/IDM_DP.xml"));
         }
 #ifndef GUPNP_1_2
 #ifndef ENABLE_HW_CERT_USAGE
@@ -406,7 +406,7 @@ int idm_server_start(char* Interface, char * base_mac)
     int result = updatexmldata("/etc/xupnp/IDM.xml",struuid,serial_num->str);
     if (!result)
     {
-        fprintf(stderr,"Failed to open the device xml file /etc/xupnp/IDM.xml\n");
+        CcspTraceError(("failed to open device XML file /etc/xupnp/IDM.xml"));
     }
     else
     {
@@ -433,7 +433,7 @@ int idm_server_start(char* Interface, char * base_mac)
     upnpService = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (baseDev), IDM_SERVICE);
     if (!upnpService)
     {
-        g_printerr ("Cannot get DiscoverFriendlies service\n");
+        CcspTraceError(("Cannot get DiscoverFriendlies service\n"));
         CcspTraceError(("failed to get DiscoverFriendlies UPnP service"));
         return 1;
     }

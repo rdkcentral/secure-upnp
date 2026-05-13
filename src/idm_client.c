@@ -117,11 +117,11 @@ int s_sysevent_connect (token_t *out_se_token)
         char          *sysevent_ip = "127.0.0.1";
         char          *sysevent_name = "idm_client";
         fd = sysevent_open(sysevent_ip, sysevent_port, SE_VERSION, sysevent_name, &sysevent_token);
-        g_message("%s: open new sysevent fd %d", __FUNCTION__,fd);
+        CcspTraceInfo(("%s: open new sysevent fd %d", __FUNCTION__,fd));
     }
     else
     {
-        g_message("Inside %s:%d",__FUNCTION__,__LINE__);
+        CcspTraceInfo(("Inside %s:%d",__FUNCTION__,__LINE__));
     }
     *out_se_token = sysevent_token;
     return fd;
@@ -176,12 +176,12 @@ int EventListen(void)
         }
         else
         {
-            g_message("Received msg that is not a SE_MSG_NOTIFICATION (%d)\n", msg_type);
+            CcspTraceInfo(("Received msg that is not a SE_MSG_NOTIFICATION (%d)\n", msg_type));
         }
     }
     else
     {
-        g_message("%s: Received no event retval=%d\n", __FUNCTION__, retval);
+        CcspTraceInfo(("%s: Received no event retval=%d\n", __FUNCTION__, retval));
     }
     return ret;
 }
@@ -197,19 +197,19 @@ start:
     rc = sysevent_setnotification(fd, token, "wan-status", &wan_status_id);
     if(rc)
     {
-        g_message("goto start");
+        CcspTraceInfo(("goto start"));
         goto start;
     }
     if ( 0 == sysevent_get(fd, token, "wan-status", wan_status,sizeof(wan_status)) && '\0' != wan_status)
     {
         if (0 == strncmp(wan_status,"stopped",strlen("stopped")))
         {
-            g_message("present wan-status stopped");
+            CcspTraceInfo(("present wan-status stopped"));
             gupnp_set_cert_flags(0x0010);
         }
         else
         {
-            g_message("present wan-status started");
+            CcspTraceInfo(("present wan-status started"));
             sysevent_rmnotification(fd, token, wan_status_id);
             sysevent_close(fd, token);
             pthread_exit(NULL);
@@ -219,19 +219,19 @@ start:
             ret = EventListen();
             if(ret == 0)
             {
-                g_message("EventListen returned zero");
+                CcspTraceInfo(("EventListen returned zero"));
                 gupnp_set_cert_flags(0x001C);
                 v_secure_system("/etc/Xupnp/idm_certs.sh");
                 break;
             }
             else if(ret == -1)
             {
-                g_message("EventListen returned minus 1");
+                CcspTraceInfo(("EventListen returned minus 1"));
                 gupnp_set_cert_flags(0x0010);
             }
             else
             {
-                g_message("EventListen returned neither 1 or -1");
+                CcspTraceInfo(("EventListen returned neither 1 or -1"));
             }
         }
         sysevent_rmnotification(fd, token, wan_status_id);
@@ -268,7 +268,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
 
     if(access(se_cert_p12, F_OK) != -1)
     {
-        g_message("Getting passcode\n");
+        CcspTraceInfo(("Getting passcode\n"));
 
         if(rdkconfig_get(&pass_phrase, &pass_size, se_cert_conf_file) == RDKCONFIG_FAIL)
         {
@@ -294,19 +294,19 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
                         xupnp_error ? xupnp_error->message : "unknown error"));
             if(xupnp_error)
             {
-                g_message(" %s\n",xupnp_error->message);
+                CcspTraceInfo((" %s\n",xupnp_error->message));
             }
             g_error_free (xupnp_error);
             if(pass_phrase != NULL)
             {
-                g_message(" Freeing pass phrase ");
+                CcspTraceInfo((" Freeing pass phrase "));
                 rdkconfig_free(&pass_phrase, pass_size);
             }
             return  G_TLS_INTERACTION_FAILED;
         }
         if(pass_phrase != NULL)
         {
-            g_message(" Freeing pass phrase ");
+            CcspTraceInfo((" Freeing pass phrase "));
             rdkconfig_free(&pass_phrase, pass_size);
         }
     }
@@ -333,7 +333,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
 
           if(xupnp_error != NULL) {
           
-                g_message("Failure reason for certificate creation: %s\n", xupnp_error->message );
+                CcspTraceError(("Failure reason for certificate creation: %s\n", xupnp_error->message));
                 g_clear_error(&xupnp_error);
             }
             return  G_TLS_INTERACTION_FAILED;
@@ -362,7 +362,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         CcspTraceError(("g_tls_certificate_new_from_files failed"));
 
         if(xupnp_error != NULL) {
-            g_message("Failure reason for certificate creation: %s\n", xupnp_error->message );
+            CcspTraceError(("Failure reason for certificate creation: %s\n", xupnp_error->message));
             g_clear_error(&xupnp_error);
           }
           return  G_TLS_INTERACTION_FAILED;
@@ -449,7 +449,7 @@ void* verify_devices()
         {
             if((sleepCounter > 6) && (sleepCounter < 12)) //wait for device addition to complete in 60 seconds and print only for another 60 seconds if there is a hang
             {
-                g_message("Device Addition %u going in main loop",deviceAddNo);
+                CcspTraceInfo(("Device Addition %u going in main loop",deviceAddNo));
             }
             sleepCounter++;
             usleep(sleep_seconds);
@@ -468,7 +468,7 @@ void* verify_devices()
                 if(cp_bgw_inactive_count > 5)
                 {
                     //xupnp thread  is stuck for 5 minutes
-                    g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
+                    CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                     cp_bgw_inactive_count = 0;
                     v_secure_system("touch /tmp/idm_upnp_not_operational");
                 }
@@ -488,7 +488,7 @@ void* verify_devices()
             if(cp_bgw_null_count > 5)
             {
                 //xupnp got stuck for 5 minutes
-                g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
+                CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                 cp_bgw_null_count = 0;
                 v_secure_system("touch /tmp/idm_upnp_not_operational");
                 // this is for information to confirm upnp locked with date and time
@@ -506,7 +506,7 @@ void* verify_devices()
                 if(cp_bgw_inactive_count > 5)
                 {
                     //xupnp got stuck for 5 minutes
-                    g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
+                    CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                     cp_bgw_inactive_count = 0;
                     v_secure_system("touch /tmp/idm_upnp_not_operational");
                     // this is for information to confirm upnp locked with date and time
@@ -528,7 +528,7 @@ void* verify_devices()
             if(cp_bgw_null_count > 5)
             {
                 //xupnp got stuck for 5 minutes
-                g_message("xupnp is stuck for more than 5 minutes. Triggering IDM restart...");
+                CcspTraceInfo(("xupnp is stuck for more than 5 minutes. Triggering IDM restart..."));
                 cp_bgw_null_count = 0;
                 v_secure_system("touch /tmp/idm_upnp_not_operational");
                 // this is for information to confirm upnp locked with date and time
@@ -598,7 +598,7 @@ gboolean delete_gwyitem(const char* serial_num)
             strcpy(di.Ipv4,gwydata->clientip->str);
             strcpy(di.mac,gwydata->bcastmacaddress->str);
             strcpy(di.Ipv6,gwydata->gwyipv6->str);
-            g_message("callback=%p",callback);
+            CcspTraceInfo(("callback=%p",callback));
             callback(&di,0,0);
             g_string_free(gwydata->serial_num, TRUE);
             g_string_free(gwydata->bcastmacaddress, TRUE);
@@ -634,7 +634,7 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
     CcspTraceInfo(("device went down sno=%s", sno ? sno : "NULL"));
     if((g_strcmp0(g_strstrip(ownSerialNo->str),sno) == 0))
     {
-        g_message ("Self Device [%s][%s] not removing",sno,ownSerialNo->str);
+        CcspTraceInfo(("Self Device [%s][%s] not removing",sno,ownSerialNo->str));
         g_free((gpointer)sno);
         return;
     }
@@ -685,7 +685,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                 gchar* receiverid = g_strndup(udn+5, strlen(udn)-5);
                 if(receiverid)
                 {
-                    g_message("Gateway device receiver id is %s",receiverid);
+                    CcspTraceInfo(("Gateway device receiver id is %s",receiverid));
                     device_info_t di;
                     memset(&di,0,sizeof(di));
                     g_string_assign(gwydata->receiverid, receiverid);
@@ -695,21 +695,21 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                     {
                         g_string_assign(gwydata->clientip, temp);
                         strncpy(di.Ipv4,gwydata->clientip->str,IPv4_ADDR_SIZE);
-                        g_message("clientIP=%s",di.Ipv4);
+                        CcspTraceInfo(("clientIP=%s",di.Ipv4));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy_i, "GetBcastMacAddress", "BcastMacAddress" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->bcastmacaddress, temp);
                         strncpy(di.mac,gwydata->bcastmacaddress->str,MAC_ADDR_SIZE);
-                        g_message("BcastMacAddress=%s",di.mac);
+                        CcspTraceInfo(("BcastMacAddress=%s",di.mac));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy_i, "GetGatewayIPv6", "GatewayIPv6" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->gwyipv6,temp);
                         strncpy(di.Ipv6,gwydata->gwyipv6->str,IPv6_ADDR_SIZE);
-                        g_message("GatewayIPv6=%s",di.Ipv6);
+                        CcspTraceInfo(("GatewayIPv6=%s",di.Ipv6));
                         g_free(temp);
                     }
                     g_mutex_lock(mutex);
@@ -734,7 +734,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     }
     g_free(sno);
     deviceAddNo--;
-    g_message("Exiting from device_proxy_available_cb_broadband deviceAddNo = %u",deviceAddNo);
+    CcspTraceInfo(("Exiting from device_proxy_available_cb_broadband deviceAddNo = %u",deviceAddNo));
 }
 #else
 static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
@@ -785,7 +785,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                 gchar* receiverid = g_strndup(udn+5, strlen(udn)-5);
                 if(receiverid)
                 {
-                    g_message("Device receiver id is %s",receiverid);
+                    CcspTraceInfo(("Device receiver id is %s",receiverid));
                     g_string_assign(gwydata->receiverid, receiverid);
                     g_free(receiverid);
                     gchar *temp=NULL;
@@ -795,21 +795,21 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                     {
                         g_string_assign(gwydata->clientip, temp);
                         strncpy(di.Ipv4,gwydata->clientip->str,IPv4_ADDR_SIZE);
-                        g_message("clientIP=%s",di.Ipv4);
+                        CcspTraceInfo(("clientIP=%s",di.Ipv4));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy, "GetBcastMacAddress", "BcastMacAddress" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->bcastmacaddress, temp);
                         strncpy(di.mac,gwydata->bcastmacaddress->str,MAC_ADDR_SIZE);
-                        g_message("BcastMacAddress=%s",di.mac);
+                        CcspTraceInfo(("BcastMacAddress=%s",di.mac));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy, "GetGatewayIPv6", "GatewayIPv6" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->gwyipv6,temp);
                         strncpy(di.Ipv6,gwydata->gwyipv6->str,IPv6_ADDR_SIZE);
-                        g_message("GatewayIPv6=%s",di.Ipv6);
+                        CcspTraceInfo(("GatewayIPv6=%s",di.Ipv6));
                         g_free(temp);
                     }
                     g_mutex_lock(mutex);
@@ -834,13 +834,13 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     }
     g_free(sno);
     deviceAddNo--;
-    g_message("Exiting from device_proxy_available_cb deviceAddNo = %u",deviceAddNo);
+    CcspTraceInfo(("Exiting from device_proxy_available_cb deviceAddNo = %u",deviceAddNo));
 }
 #endif
 
 void remove_entries_in_list()
 {
-    g_message("%s:%d Entered.",__FUNCTION__,__LINE__);
+    CcspTraceInfo(("%s:%d Entered.",__FUNCTION__,__LINE__));
     if (g_list_length(xdevlist) > 0)
     {
         GList *element = NULL;
@@ -850,7 +850,7 @@ void remove_entries_in_list()
             GwyDeviceData *gwydata = element->data;
             g_mutex_lock(mutex);
             xdevlist = g_list_remove_link(xdevlist,element);
-            g_message("%s:%d Deleting %s from the list",__FUNCTION__,__LINE__,gwydata->bcastmacaddress->str);
+            CcspTraceInfo(("%s:%d Deleting %s from the list",__FUNCTION__,__LINE__,gwydata->bcastmacaddress->str));
             g_string_free(gwydata->serial_num, TRUE);
             g_string_free(gwydata->bcastmacaddress, TRUE);
             g_string_free(gwydata->gwyipv6,TRUE);
@@ -875,11 +875,11 @@ void remove_entries_in_list()
  To update flag, we need lock because the same flag is used by stop_discovery_process() thread */
 int stop_discovery()
 {
-    g_message("%s:%d Called.",__FUNCTION__,__LINE__);
+    CcspTraceInfo(("%s:%d Called.",__FUNCTION__,__LINE__));
     g_mutex_lock(&stop_discovery_mutex);
     idm_stop_discovery_triggered = 1;
     g_mutex_unlock(&stop_discovery_mutex);
-    g_message("%s:%d completed",__FUNCTION__,__LINE__);
+    CcspTraceInfo(("%s:%d completed",__FUNCTION__,__LINE__));
     return 0;
 }
 void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info_t*,uint,uint))
@@ -1003,8 +1003,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
 #endif
 #endif
         if (error) {
-            g_printerr ("%s:%d Error creating the Device Protection Broadcast context: %s\n",
-                    __FUNCTION__,__LINE__,error->message);
+            CcspTraceError(("%s:%d Error creating the Device Protection Broadcast context: %s\n", __FUNCTION__,__LINE__,error->message));
             /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
             g_clear_error(&error);
         }
@@ -1071,10 +1070,10 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
 #endif
 #endif
     sleep_seconds=((dc_obj->loss_detection_window+8)*1000000);
-    g_message("%s %d calling discovery_interval_configuration function %u loss_detection_window=%u",__FUNCTION__,__LINE__,dc_obj->discovery_interval,dc_obj->loss_detection_window);
+    CcspTraceInfo(("%s %d calling discovery_interval_configuration function %u loss_detection_window=%u",__FUNCTION__,__LINE__,dc_obj->discovery_interval,dc_obj->loss_detection_window));
     dc_obj->discovery_interval=dc_obj->discovery_interval*1000;
     discovery_interval_configuration(dc_obj->discovery_interval,dc_obj->loss_detection_window);
-    g_message("done timeout source assigning\n");
+    CcspTraceInfo(("done timeout source assigning\n"));
     if(idm_upnp_init_status == FALSE) //Start verify_devices thread only for first time.
     {
         g_thread_create(verify_devices, NULL,FALSE, NULL);
@@ -1108,5 +1107,5 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     g_mutex_free(mutex);
     /* upnp needs four seconds before restarting for avoiding port bind issues */
     sleep(4);
-    g_message("%s:%d Completed.",__FUNCTION__,__LINE__);
+    CcspTraceInfo(("%s:%d Completed.",__FUNCTION__,__LINE__));
 }
