@@ -18,37 +18,33 @@
  */
 /**
  * @file idm_log.h
- * @brief IDM logging macros backed by rdklogger.
+ * @brief IDM logging macros — thin wrappers over CcspTraceInfo/CcspTraceError.
  *
- * Uses RDK_LOG() with the "LOG.RDK.INTERDEVICEMANAGER" log4c category —
- * identical to the module used by the interdevicemanager binary — which
- * routes all output to /rdklogs/logs/InterDeviceManager.txt.
- * Timestamps, log rotation, and level filtering are handled by rdklogger.
+ * Uses the same ccsp_trace.h API as the interdevicemanager binary.
+ * pComponentName is supplied by the interdevicemanager binary that links
+ * libupnpidm.la; CcspTraceGetRdkLogModule() maps it to
+ * "LOG.RDK.INTERDEVICEMANAGER", routing all output to InterDeviceManager.txt.
  *
- * Link with -lrdkloggers (declared in libupnpidm_la_LIBADD).
+ * Link with -lrdkloggers -lccsp_common (declared in libupnpidm_la_LIBADD).
  */
 
 #ifndef IDM_LOG_H
 #define IDM_LOG_H
 
-#include "rdk_debug.h"
-
-#define IDM_LOG_MODULE "LOG.RDK.INTERDEVICEMANAGER"
+#include "ccsp_trace.h"
 
 /**
- * IDM_LOG_INFO(fmt, ...) — INFO-level entry in InterDeviceManager.txt.
- * IDM_LOG_ERR(fmt, ...)  — ERROR-level entry in InterDeviceManager.txt.
+ * IDM_LOG_INFO(fmt, ...) — INFO-level entry; matches CcspTraceInfo convention.
+ * IDM_LOG_ERR(fmt, ...)  — ERROR-level entry; matches CcspTraceError convention.
  *
- * A newline is appended automatically; do not include a trailing "\n" in fmt.
- * Each line is prefixed with (function:line) matching the CcspTraceInfo
- * convention used by the interdevicemanager component.
+ * Format prefix "(%s:%d) " injects __func__ and __LINE__ automatically,
+ * identical to the pattern used throughout the interdevicemanager source.
+ * Do not include a trailing "\n" in fmt — it is appended by the macro.
  */
 #define IDM_LOG_INFO(fmt, ...) \
-    RDK_LOG(RDK_LOG_INFO,  IDM_LOG_MODULE, \
-            "(%s:%d) " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
+    CcspTraceInfo(("(%s:%d) " fmt "\n", __func__, __LINE__, ##__VA_ARGS__))
 
 #define IDM_LOG_ERR(fmt, ...) \
-    RDK_LOG(RDK_LOG_ERROR, IDM_LOG_MODULE, \
-            "(%s:%d) " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
+    CcspTraceError(("(%s:%d) " fmt "\n", __func__, __LINE__, ##__VA_ARGS__))
 
 #endif /* IDM_LOG_H */
