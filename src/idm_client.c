@@ -62,7 +62,7 @@
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
 #include <telemetry_busmessage_sender.h>
 #endif
-#include "idm_log.h"
+#include "ccsp_trace.h"
 #define CLIENT_CONTEXT_PORT 50767
 #define IDM_CLIENT_DEVICE "urn:schemas-upnp-org:device:IDM:1"
 #define IDM_SERVICE "urn:schemas-upnp-org:service:X1IDM:1"
@@ -165,13 +165,13 @@ int EventListen(void)
                 if (!strncmp(value_str, "started", 7))
                 {
                     g_message("wan-status returned started");
-                    IDM_LOG_INFO("wan-status started");
+                    CcspTraceInfo(("wan-status started"));
                     ret = 0;
                 }
                 else if (!strncmp(value_str, "stopped", 7))
                 {
                     g_message("wan-status returned stopped");
-                    IDM_LOG_INFO("wan-status stopped");
+                    CcspTraceInfo(("wan-status stopped"));
                     ret = -1;
                 }
             }
@@ -275,30 +275,30 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         if(rdkconfig_get(&pass_phrase, &pass_size, se_cert_conf_file) == RDKCONFIG_FAIL)
         {
             g_message("Error in getting passcode\n");
-            IDM_LOG_ERR("rdkconfig_get failed for SE cert passcode");
+            CcspTraceError(("rdkconfig_get failed for SE cert passcode"));
         }
         else
         {
             len = strcspn(pass_phrase, "\n");
             pass_phrase[len] = '\0';
             g_message("Passcode decoded successfully\n");
-            IDM_LOG_INFO("SE cert passcode decoded");
+            CcspTraceInfo(("SE cert passcode decoded"));
         }
 
         g_message(" Using SE certificate with pass code \n");
-        IDM_LOG_INFO("using SE certificate with passcode");
+        CcspTraceInfo(("using SE certificate with passcode"));
 
         cert = g_tls_certificate_new_from_file_with_password(se_cert_p12, pass_phrase, &xupnp_error);
         if(cert)
         {
             g_message(" Successfully generated g_tls cert from SE certificate\n");
-            IDM_LOG_INFO("SE certificate loaded successfully");
+            CcspTraceInfo(("SE certificate loaded successfully"));
         }
         else
         {
             g_message(" Failed to generate g_tls cert from SE certificate\n");
-            IDM_LOG_ERR("g_tls_certificate_new_from_file_with_password failed: %s",
-                        xupnp_error ? xupnp_error->message : "unknown error");
+            CcspTraceError(("g_tls_certificate_new_from_file_with_password failed: %s",
+                        xupnp_error ? xupnp_error->message : "unknown error"));
             if(xupnp_error)
             {
                 g_message(" %s\n",xupnp_error->message);
@@ -322,14 +322,14 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
             g_message(" Certificate or Key file NULL");
-            IDM_LOG_ERR("certFile or keyFile path is empty (HW cert fallback path)");
+            CcspTraceError(("certFile or keyFile path is empty (HW cert fallback path)"));
             return  G_TLS_INTERACTION_FAILED;
         }
 
         if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
           g_message(" Certificate or Key file does not exist");
-          IDM_LOG_ERR("certFile or keyFile not found");
+          CcspTraceError(("certFile or keyFile not found"));
           return  G_TLS_INTERACTION_FAILED;
        }
 
@@ -339,7 +339,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
        if(cert == NULL) {
        
           g_message("Certificate creation failed from cert and key files");
-          IDM_LOG_ERR("g_tls_certificate_new_from_files failed");
+          CcspTraceError(("g_tls_certificate_new_from_files failed"));
 
           if(xupnp_error != NULL) {
           
@@ -355,14 +355,14 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if ((certFile[0] == '\0') || (keyFile[0] == '\0')) {
 
         g_message(" Certificate or Key file NULL");
-        IDM_LOG_ERR("certFile or keyFile path is empty");
+        CcspTraceError(("certFile or keyFile path is empty"));
         return  G_TLS_INTERACTION_FAILED;
     }
 
     if((access(certFile,F_OK ) != 0) || (access(keyFile,F_OK ) != 0)) {
 
         g_message(" Certificate or Key file does not exist");
-        IDM_LOG_ERR("certFile or keyFile not found");
+        CcspTraceError(("certFile or keyFile not found"));
         return  G_TLS_INTERACTION_FAILED;
     }
 
@@ -372,7 +372,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
     if(cert == NULL) {
 
         g_message("Certificate creation failed from cert and key files");
-        IDM_LOG_ERR("g_tls_certificate_new_from_files failed");
+        CcspTraceError(("g_tls_certificate_new_from_files failed"));
 
         if(xupnp_error != NULL) {
             g_message("Failure reason for certificate creation: %s\n", xupnp_error->message );
@@ -438,7 +438,7 @@ GError *error = NULL;
     if ( NULL != error ) //Didn't went well
     {
         g_message ("%s  process gw services  Error: %s\n", requestFn, error->message);
-        IDM_LOG_ERR("gupnp_service_proxy_send_action failed fn=%s error=%s", requestFn, error->message);
+        CcspTraceError(("gupnp_service_proxy_send_action failed fn=%s error=%s", requestFn, error->message));
         if ( isInCriticalPath ) // Update telemetry
         {
                 g_message("TELEMETRY_XUPNP_PARTIAL_DISCOVERY:%d,%s",error->code, requestFn);
@@ -455,7 +455,7 @@ void* verify_devices()
     guint cp_bgw_inactive_count = 0;
     guint cp_bgw_null_count = 0;
     g_message("verify_devices thread started running...");
-    IDM_LOG_INFO("verify_devices thread started");
+    CcspTraceInfo(("verify_devices thread started"));
     //workaround to remove device in second attempt -Start
     usleep(sleep_seconds);
     while(1)
@@ -479,7 +479,7 @@ void* verify_devices()
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp))==FALSE)
             {
                 g_message("Forced rescan failed");
-                IDM_LOG_INFO("gssdp rescan failed (cp)");
+                CcspTraceInfo(("gssdp rescan failed (cp)"));
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
@@ -518,7 +518,7 @@ void* verify_devices()
             if (gssdp_resource_browser_rescan(GSSDP_RESOURCE_BROWSER(cp_bgw))==FALSE)
             {
                 g_message("Forced rescan failed for broadband");
-                IDM_LOG_INFO("gssdp rescan failed (cp_bgw)");
+                CcspTraceInfo(("gssdp rescan failed (cp_bgw)"));
                 cp_bgw_inactive_count++;
                 if(cp_bgw_inactive_count > 5)
                 {
@@ -577,30 +577,30 @@ void* stop_discovery_process()
         if(stop_discovery_status)
         {
             g_message("Stop discovery process started..");
-            IDM_LOG_INFO("stop discovery triggered");
+            CcspTraceInfo(("stop discovery triggered"));
             g_message("Checking main loop..");
             if(main_loop)
             {
                 if(g_main_loop_is_running(main_loop))
                 {
                     g_message("Quitting main loop..");
-                    IDM_LOG_INFO("quitting main loop");
+                    CcspTraceInfo(("quitting main loop"));
                     g_main_loop_quit(main_loop);
                     g_message("Quitting main loop done..");
                 }
                 else
                 {
                     g_message("Main loop is not running..");
-                    IDM_LOG_INFO("main loop not running");
+                    CcspTraceInfo(("main loop not running"));
                 }
             } 
             else
             {
                 g_message("Main loop is NULL..");
-                IDM_LOG_INFO("main loop is NULL");
+                CcspTraceInfo(("main loop is NULL"));
             }
             g_message("Stop discovery process done..");
-            IDM_LOG_INFO("stop discovery complete");
+            CcspTraceInfo(("stop discovery complete"));
         }
         sleep(5);
     }
@@ -641,14 +641,14 @@ gboolean delete_gwyitem(const char* serial_num)
         g_free(gwydata);
         g_mutex_unlock(mutex);
         g_message("Deleted device %s from the list", serial_num);
-        IDM_LOG_INFO("device removed from list sno=%s", serial_num);
+        CcspTraceInfo(("device removed from list sno=%s", serial_num));
         g_list_free (lstXdev);
         return TRUE;
     }
     else
     {
         g_message("Device %s to be removed not in the discovered device list", serial_num);
-        IDM_LOG_INFO("device not found in list for removal sno=%s", serial_num);
+        CcspTraceInfo(("device not found in list for removal sno=%s", serial_num));
     }
     return FALSE;
 }
@@ -658,7 +658,7 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
 {
     const gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
     g_message ("In unavailable_bgw Device %s went down",sno);
-    IDM_LOG_INFO("device went down sno=%s", sno ? sno : "NULL");
+    CcspTraceInfo(("device went down sno=%s", sno ? sno : "NULL"));
     if((g_strcmp0(g_strstrip(ownSerialNo->str),sno) == 0))
     {
         g_message ("Self Device [%s][%s] not removing",sno,ownSerialNo->str);
@@ -668,13 +668,13 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
     if (delete_gwyitem(sno) == FALSE)
     {
         g_message("%s found, but unable to delete it from list", sno);
-        IDM_LOG_ERR("failed to delete device from list sno=%s", sno ? sno : "NULL");
+        CcspTraceError(("failed to delete device from list sno=%s", sno ? sno : "NULL"));
         return;
     }
     else
     {
         g_message("Deleted %s from list", sno);
-        IDM_LOG_INFO("device deleted from list sno=%s", sno);
+        CcspTraceInfo(("device deleted from list sno=%s", sno));
     }
     g_free((gpointer)sno);
 }
@@ -683,13 +683,13 @@ static void
 device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
 {
     g_message("In available_bgw found a Broadband device. deviceAddNo = %u ",deviceAddNo);
-    IDM_LOG_INFO("broadband device available cb triggered no=%u", deviceAddNo);
+    CcspTraceInfo(("broadband device available cb triggered no=%u", deviceAddNo));
     deviceAddNo++;
     if ((NULL==cp) || (NULL==dproxy))
     {
         deviceAddNo--;
         g_message("WARNING - Received a null pointer for broadband device device no %u",deviceAddNo);
-        IDM_LOG_ERR("null pointer received for broadband device no %u", deviceAddNo);
+        CcspTraceError(("null pointer received for broadband device no %u", deviceAddNo));
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -698,7 +698,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     {
         deviceAddNo--;
         g_message("Existing available_cb_bgw as SNO is present in list so no update of devices %s device no %u",sno,deviceAddNo);
-        IDM_LOG_INFO("device already in list skipping sno=%s", sno ? sno : "NULL");
+        CcspTraceInfo(("device already in list skipping sno=%s", sno ? sno : "NULL"));
         g_free((gpointer)sno);
         return;
     }
@@ -708,7 +708,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     if (sno != NULL)
     {
         g_message("In available_cb_bgw Broadband device serial number: %s",sno);
-        IDM_LOG_INFO("broadband device discovered sno=%s", sno);
+        CcspTraceInfo(("broadband device discovered sno=%s", sno));
         g_string_assign(gwydata->serial_num, sno);
         const char* udn = gupnp_device_info_get_udn(GUPNP_DEVICE_INFO (dproxy));
         if (udn != NULL)
@@ -750,7 +750,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                     g_mutex_unlock(mutex);
                     g_message("Associating device %s", sno);
                     g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
-                    IDM_LOG_INFO("device associated sno=%s", sno);
+                    CcspTraceInfo(("device associated sno=%s", sno));
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
                     t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
 #endif
@@ -759,14 +759,14 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                 else
                 {
                     g_message("In available_cb_bgw gateway device receiver id is NULL");
-                    IDM_LOG_ERR("gateway device receiver id is NULL sno=%s", sno);
+                    CcspTraceError(("gateway device receiver id is NULL sno=%s", sno));
                 }
             }
         }
         else
         {
             g_message("Gateway UDN is NULL");
-            IDM_LOG_ERR("gateway UDN is NULL sno=%s", sno);
+            CcspTraceError(("gateway UDN is NULL sno=%s", sno));
         }
     }
     g_free(sno);
@@ -777,13 +777,13 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
 static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
 {
     g_message("Found a new device. deviceAddNo = %u ",deviceAddNo);
-    IDM_LOG_INFO("new device available cb triggered no=%u", deviceAddNo);
+    CcspTraceInfo(("new device available cb triggered no=%u", deviceAddNo));
     deviceAddNo++;
     if ((NULL==cp) || (NULL==dproxy))
     {
         deviceAddNo--;
         g_message("WARNING - Received a null pointer for gateway device device no %u",deviceAddNo);
-        IDM_LOG_ERR("null pointer received for gateway device no %u", deviceAddNo);
+        CcspTraceError(("null pointer received for gateway device no %u", deviceAddNo));
         return;
     }
     gchar* sno = gupnp_device_info_get_serial_number (GUPNP_DEVICE_INFO (dproxy));
@@ -792,7 +792,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     {
         deviceAddNo--;
         g_message("Existing as SNO is present in list so no update of devices %s device no %u",sno,deviceAddNo);
-        IDM_LOG_INFO("device already in list skipping sno=%s", sno ? sno : "NULL");
+        CcspTraceInfo(("device already in list skipping sno=%s", sno ? sno : "NULL"));
         g_free(sno);
         return;
     }
@@ -804,7 +804,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     else
     {
         g_critical("Could not allocate memory for Gwydata. Exiting...");
-        IDM_LOG_ERR("could not allocate memory for GwyData, exiting");
+        CcspTraceError(("could not allocate memory for GwyData, exiting"));
         exit(1);
     }
     gwydata->sproxy = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (dproxy), IDM_SERVICE);
@@ -812,13 +812,13 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     {
         deviceAddNo--;
         g_message("Unable to get the services, sproxy null. returning");
-        IDM_LOG_ERR("unable to get services sproxy null sno=%s", sno ? sno : "NULL");
+        CcspTraceError(("unable to get services sproxy null sno=%s", sno ? sno : "NULL"));
         return;
     }
     if (sno != NULL)
     {
         g_message("Device serial number is %s",sno);
-        IDM_LOG_INFO("device discovered sno=%s", sno);
+        CcspTraceInfo(("device discovered sno=%s", sno));
         g_string_assign(gwydata->serial_num, sno);
         const char* udn = gupnp_device_info_get_udn(GUPNP_DEVICE_INFO (dproxy));
         if (udn != NULL)
@@ -860,7 +860,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                     g_mutex_unlock(mutex);
                     g_message("Inserted new/updated device %s in the list", sno);
                     g_message("TELEMETRY_IDM_DEVICE_ASSOCIATED:%s", sno);
-                    IDM_LOG_INFO("device associated sno=%s", sno);
+                    CcspTraceInfo(("device associated sno=%s", sno));
 #if defined(ENABLE_FEATURE_TELEMETRY2_0)
                     t2_event_s("IDM_DEVICE_ASSOCIATED_split", sno);
 #endif
@@ -869,14 +869,14 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                 else
                 {
                     g_message("Device receiver id is NULL");
-                    IDM_LOG_ERR("device receiver id is NULL sno=%s", sno);
+                    CcspTraceError(("device receiver id is NULL sno=%s", sno));
                 }
             }
         }
         else
         {
             g_message("Device UDN is NULL");
-            IDM_LOG_ERR("device UDN is NULL sno=%s", sno);
+            CcspTraceError(("device UDN is NULL sno=%s", sno));
         }
     }
     g_free(sno);
@@ -936,12 +936,12 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     {
         g_message("some of mandatory values are missing");
         g_message("interface=%s port=%d discovery_interval=%d loss_detection_window=%d\n", dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window);
-        IDM_LOG_ERR("mandatory values missing interface=%s port=%d interval=%d window=%d",
-                    dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window);
+        CcspTraceError(("mandatory values missing interface=%s port=%d interval=%d window=%d",
+                    dc_obj->interface, dc_obj->port, dc_obj->discovery_interval, dc_obj->loss_detection_window));
         return;
     }
     g_message("interface=%s port=%d",dc_obj->interface,dc_obj->port);
-    IDM_LOG_INFO("discovery started interface=%s port=%d", dc_obj->interface, dc_obj->port);
+    CcspTraceInfo(("discovery started interface=%s port=%d", dc_obj->interface, dc_obj->port));
     g_thread_init (NULL);
     g_type_init();
     GError* error = 0;
@@ -984,12 +984,12 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             if(access(se_cert_p12, F_OK ) == -1)
             {
                 g_message("Cannot create p12 cert file");
-                IDM_LOG_ERR("cannot create p12 cert file");
+                CcspTraceError(("cannot create p12 cert file"));
             }
             else
             {
                 g_message("successfully created p12 cert file");
-                IDM_LOG_INFO("p12 cert file created");
+                CcspTraceInfo(("p12 cert file created"));
             }
         }
     }
@@ -1002,7 +1002,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         strncpy(certFile, dc_obj->sslCert, sizeof(certFile) -1);
         strncpy(keyFile, dc_obj->sslKey, sizeof(keyFile) -1);
         g_message("SE HW certificate is not accessible.");
-        IDM_LOG_ERR("SE HW certificate not accessible, falling back to software cert");
+        CcspTraceError(("SE HW certificate not accessible, falling back to software cert"));
 
     }
 #endif
@@ -1011,7 +1011,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     if(rvalue==1)
     {
         g_message("id_server_start has facing some issue");
-        IDM_LOG_ERR("idm_server_start failed rvalue=%d", rvalue);
+        CcspTraceError(("idm_server_start failed rvalue=%d", rvalue));
         return;
     }
     mutex = g_mutex_new ();
@@ -1032,13 +1032,13 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         if(access(se_cert_p12, F_OK) == 0)
         {
             g_message("IDM Client: SE HW certificate is available. Creating device protect without extracted files");
-            IDM_LOG_INFO("TLS context: using SE HW certificate");
+            CcspTraceInfo(("TLS context: using SE HW certificate"));
             upnpContextDeviceProtect = gupnp_context_new_s ( NULL,  dc_obj->interface, dc_obj->port,NULL,NULL, &error);
         }
         else
         {
             g_message("IDM Client: SE HW certificate is not available. Creating device protect with extracted files");
-            IDM_LOG_INFO("TLS context: using extracted cert files");
+            CcspTraceInfo(("TLS context: using extracted cert files"));
             upnpContextDeviceProtect = gupnp_context_new_s ( NULL,  dc_obj->interface, dc_obj->port,certFile,keyFile, &error);
         }
 #endif
@@ -1049,13 +1049,13 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         if(access(se_cert_p12, F_OK) == 0)
         {
             g_message("IDM Client: SE HW certificate is available. Creating device protect without extracted files");
-            IDM_LOG_INFO("TLS context: using SE HW certificate");
+            CcspTraceInfo(("TLS context: using SE HW certificate"));
             upnpContextDeviceProtect = gupnp_context_new_s (dc_obj->interface, dc_obj->port,NULL,NULL, &error);
         }
         else
         {
             g_message("IDM Client: SE HW certificate is not available. Creating device protect with extracted files");
-            IDM_LOG_INFO("TLS context: using extracted cert files");
+            CcspTraceInfo(("TLS context: using extracted cert files"));
             upnpContextDeviceProtect = gupnp_context_new_s (dc_obj->interface, dc_obj->port,certFile,keyFile, &error);
         }
 #endif
@@ -1069,14 +1069,14 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         else
         {
             g_message("IDM UPnP is running in secure mode");
-            IDM_LOG_INFO("UPnP running in secure mode");
+            CcspTraceInfo(("UPnP running in secure mode"));
             gupnp_context_set_subscription_timeout(upnpContextDeviceProtect, 0);
             xupnp_tlsinteraction = g_object_new (xupnp_tls_interaction_get_type (), NULL);
             g_message("tls interaction object created");
-            IDM_LOG_INFO("TLS interaction object created");
+            CcspTraceInfo(("TLS interaction object created"));
             // Set TLS config params here.
             g_message("Setting CA file %s", caFile);
-            IDM_LOG_INFO("TLS CA file configured");
+            CcspTraceInfo(("TLS CA file configured"));
             gupnp_context_set_tls_params(upnpContextDeviceProtect,caFile,NULL, xupnp_tlsinteraction);
             if(idm_upnp_init_status == FALSE) //Start event_handle_thread only for first time.
             {
@@ -1085,7 +1085,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
                 if(0 != err)
                 {
                     g_message("%s: create the event handle thread error!\n", __FUNCTION__);
-                    IDM_LOG_ERR("pthread_create EventHandler failed err=%d", err);
+                    CcspTraceError(("pthread_create EventHandler failed err=%d", err));
                 }
             }
             cp_bgw = gupnp_control_point_new(upnpContextDeviceProtect, IDM_DP_CLIENT_DEVICE);
@@ -1093,13 +1093,13 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
             g_signal_connect (cp_bgw,"device-proxy-unavailable", G_CALLBACK (device_proxy_unavailable_cb_bgw), NULL);
             gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (cp_bgw), TRUE);
             g_message("X1BroadbandGateway controlpoint created for idm");
-            IDM_LOG_INFO("X1BroadbandGateway control point active");
+            CcspTraceInfo(("X1BroadbandGateway control point active"));
         }
     }
     else
     {
         g_message("%s:mandatory files doesn't present",__FUNCTION__);
-        IDM_LOG_ERR("mandatory cert/key files not present, running without TLS");
+        CcspTraceError(("mandatory cert/key files not present, running without TLS"));
     }
 #ifdef GUPNP_0_19
     main_loop = g_main_loop_new (NULL, FALSE);
@@ -1108,7 +1108,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
 #endif
 #else
     g_message("IDM is running in non secure mode");
-    IDM_LOG_INFO("UPnP running in non-secure mode");
+    CcspTraceInfo(("UPnP running in non-secure mode"));
 #ifndef GUPNP_1_2
 #ifdef GUPNP_0_14
     main_context = g_main_context_new();
@@ -1122,7 +1122,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     if (error) {
         g_message ("Error creating the GUPnP context: %s", error->message);
         g_critical("%s:Error creating the XUPnP context on %s:%d Error:%s", __FUNCTION__,dc_obj->interface, CLIENT_CONTEXT_PORT, error->message);
-        IDM_LOG_ERR("GUPnP context creation failed on %s:%d error=%s", dc_obj->interface, CLIENT_CONTEXT_PORT, error->message);
+        CcspTraceError(("GUPnP context creation failed on %s:%d error=%s", dc_obj->interface, CLIENT_CONTEXT_PORT, error->message));
         g_error_free (error);
         return;
     }
@@ -1147,14 +1147,14 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
         g_thread_create(verify_devices, NULL,FALSE, NULL);
         g_thread_create(stop_discovery_process, NULL,FALSE, NULL);
         g_message("upnp threads created successfully...\n");
-        IDM_LOG_INFO("UPnP threads started");
+        CcspTraceInfo(("UPnP threads started"));
     }
     g_message("idm upnp init success\n");
-    IDM_LOG_INFO("IDM UPnP init complete");
+    CcspTraceInfo(("IDM UPnP init complete"));
     idm_upnp_init_status = TRUE;
     g_main_loop_run (main_loop);
     g_message("%s:%d main loop broken",__FUNCTION__,__LINE__);
-    IDM_LOG_INFO("main loop exited");
+    CcspTraceInfo(("main loop exited"));
     /* emit unavailable signal for the resource connected devices */
 #ifndef IDM_DEBUG
     gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (cp_bgw), FALSE);
@@ -1162,10 +1162,10 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (cp), FALSE);
 #endif
     g_message("invoke free_server_memory");
-    IDM_LOG_INFO("freeing server memory");
+    CcspTraceInfo(("freeing server memory"));
     free_server_memory();
     g_message("Invoke remove_entries_in_list");
-    IDM_LOG_INFO("removing device list entries");
+    CcspTraceInfo(("removing device list entries"));
     remove_entries_in_list();
     g_main_loop_unref (main_loop);
     main_loop = NULL;
