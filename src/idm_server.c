@@ -127,7 +127,7 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
 {
     memset(accountId,0,ACCOUNTID_SIZE);
     getAccountId(accountId);
-    CcspTraceInfo(("GetAccountId action invoked"));
+    CcspTraceDebug(("GetAccountId action invoked"));
     gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId,NULL);
     gupnp_service_action_return (action);
 }
@@ -234,20 +234,20 @@ BOOL updatexmldata(const char* xmlfilename, const char* struuid,const char* seri
 
 void free_server_memory()
 {
-    CcspTraceInfo(("free_server_memory called"));
+    CcspTraceDebug(("free_server_memory called"));
 #ifdef IDM_DEBUG
     gupnp_root_device_set_available (baseDev, FALSE);
     g_clear_object (&upnpService);
     g_clear_object (&baseDev);
     g_clear_object (&server_upnpContext);
 #else
-    CcspTraceInfo(("Setting root device set as false%s",__FUNCTION__));
+    CcspTraceDebug(("Setting root device set as false%s",__FUNCTION__));
     gupnp_root_device_set_available (dev, FALSE);
-    CcspTraceInfo(("Clearing upnpIdService %s",__FUNCTION__));
+    CcspTraceDebug(("Clearing upnpIdService %s",__FUNCTION__));
     g_clear_object(&upnpIdService);
-    CcspTraceInfo(("Clearing dev %s",__FUNCTION__));
+    CcspTraceDebug(("Clearing dev %s",__FUNCTION__));
     g_clear_object(&dev);
-    CcspTraceInfo(("Clearing server_upnpContextDeviceProtect %s",__FUNCTION__));
+    CcspTraceDebug(("Clearing server_upnpContextDeviceProtect %s",__FUNCTION__));
     g_clear_object(&server_upnpContextDeviceProtect);
 #endif
 }
@@ -267,7 +267,7 @@ BOOL getUidfromRecvId()
         g_string_append(recv_id, g_strstrip(tokens[loopvar++]));
     }
     if(result == TRUE)
-        CcspTraceInfo(("recv_id generated from MAC"));
+        CcspTraceDebug(("recv_id generated from MAC"));
     else
         CcspTraceError(("getUidfromRecvId: MAC tokenize failed toklength=%u", toklength));
     g_strfreev(tokens);
@@ -331,12 +331,12 @@ int idm_server_start(char* Interface, char * base_mac)
 #else
         if(access(se_cert_p12, F_OK) == 0)
         {
-            CcspTraceInfo(("server TLS context: using SE HW certificate"));
+            CcspTraceDebug(("server TLS context: using SE HW certificate"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( NULL,interface,DEVICE_PROTECTION_CONTEXT_PORT,NULL,NULL, &error);
         }
         else
         {
-            CcspTraceInfo(("server TLS context: using extracted cert files"));
+            CcspTraceDebug(("server TLS context: using extracted cert files"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( NULL,interface,DEVICE_PROTECTION_CONTEXT_PORT,certFile,keyFile, &error);
         }
 #endif
@@ -346,12 +346,12 @@ int idm_server_start(char* Interface, char * base_mac)
 #else
         if(access(se_cert_p12, F_OK) == 0)
         {
-            CcspTraceInfo(("server TLS context: using SE HW certificate"));
+            CcspTraceDebug(("server TLS context: using SE HW certificate"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( interface,DEVICE_PROTECTION_CONTEXT_PORT,NULL,NULL, &error);
         }
         else 
         {
-            CcspTraceInfo(("server TLS context: using extracted cert files"));
+            CcspTraceDebug(("server TLS context: using extracted cert files"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( interface,DEVICE_PROTECTION_CONTEXT_PORT,certFile,keyFile, &error);
         }
 #endif
@@ -367,7 +367,7 @@ int idm_server_start(char* Interface, char * base_mac)
         {
             gupnp_context_set_subscription_timeout(server_upnpContextDeviceProtect, 0);
             // Set TLS config params here.
-            CcspTraceInfo(("server TLS CA cert configured"));
+            CcspTraceDebug(("server TLS CA cert configured"));
             gupnp_context_set_tls_params(server_upnpContextDeviceProtect,caFile,NULL, NULL);
 #ifndef GUPNP_1_2
             dev = gupnp_root_device_new (server_upnpContextDeviceProtect, "/etc/xupnp/IDM_DP.xml", "/etc/xupnp/");

@@ -117,11 +117,11 @@ int s_sysevent_connect (token_t *out_se_token)
         char          *sysevent_ip = "127.0.0.1";
         char          *sysevent_name = "idm_client";
         fd = sysevent_open(sysevent_ip, sysevent_port, SE_VERSION, sysevent_name, &sysevent_token);
-        CcspTraceInfo(("%s: open new sysevent fd %d", __FUNCTION__,fd));
+        CcspTraceDebug(("%s: open new sysevent fd %d", __FUNCTION__,fd));
     }
     else
     {
-        CcspTraceInfo(("Inside %s:%d",__FUNCTION__,__LINE__));
+        CcspTraceDebug(("Inside %s:%d",__FUNCTION__,__LINE__));
     }
     *out_se_token = sysevent_token;
     return fd;
@@ -176,12 +176,12 @@ int EventListen(void)
         }
         else
         {
-            CcspTraceInfo(("Received msg that is not a SE_MSG_NOTIFICATION (%d)\n", msg_type));
+            CcspTraceDebug(("Received msg that is not a SE_MSG_NOTIFICATION (%d)\n", msg_type));
         }
     }
     else
     {
-        CcspTraceInfo(("%s: Received no event retval=%d\n", __FUNCTION__, retval));
+        CcspTraceDebug(("%s: Received no event retval=%d\n", __FUNCTION__, retval));
     }
     return ret;
 }
@@ -197,19 +197,19 @@ start:
     rc = sysevent_setnotification(fd, token, "wan-status", &wan_status_id);
     if(rc)
     {
-        CcspTraceInfo(("goto start"));
+        CcspTraceDebug(("goto start"));
         goto start;
     }
     if ( 0 == sysevent_get(fd, token, "wan-status", wan_status,sizeof(wan_status)) && '\0' != wan_status)
     {
         if (0 == strncmp(wan_status,"stopped",strlen("stopped")))
         {
-            CcspTraceInfo(("present wan-status stopped"));
+            CcspTraceDebug(("present wan-status stopped"));
             gupnp_set_cert_flags(0x0010);
         }
         else
         {
-            CcspTraceInfo(("present wan-status started"));
+            CcspTraceDebug(("present wan-status started"));
             sysevent_rmnotification(fd, token, wan_status_id);
             sysevent_close(fd, token);
             pthread_exit(NULL);
@@ -219,19 +219,19 @@ start:
             ret = EventListen();
             if(ret == 0)
             {
-                CcspTraceInfo(("EventListen returned zero"));
+                CcspTraceDebug(("EventListen returned zero"));
                 gupnp_set_cert_flags(0x001C);
                 v_secure_system("/etc/Xupnp/idm_certs.sh");
                 break;
             }
             else if(ret == -1)
             {
-                CcspTraceInfo(("EventListen returned minus 1"));
+                CcspTraceDebug(("EventListen returned minus 1"));
                 gupnp_set_cert_flags(0x0010);
             }
             else
             {
-                CcspTraceInfo(("EventListen returned neither 1 or -1"));
+                CcspTraceDebug(("EventListen returned neither 1 or -1"));
             }
         }
         sysevent_rmnotification(fd, token, wan_status_id);
@@ -268,7 +268,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
 
     if(access(se_cert_p12, F_OK) != -1)
     {
-        CcspTraceInfo(("Getting passcode\n"));
+        CcspTraceDebug(("Getting passcode\n"));
 
         if(rdkconfig_get(&pass_phrase, &pass_size, se_cert_conf_file) == RDKCONFIG_FAIL)
         {
@@ -294,19 +294,19 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
                         xupnp_error ? xupnp_error->message : "unknown error"));
             if(xupnp_error)
             {
-                CcspTraceInfo((" %s\n",xupnp_error->message));
+                CcspTraceDebug((" %s\n",xupnp_error->message));
             }
             g_error_free (xupnp_error);
             if(pass_phrase != NULL)
             {
-                CcspTraceInfo((" Freeing pass phrase "));
+                CcspTraceDebug((" Freeing pass phrase "));
                 rdkconfig_free(&pass_phrase, pass_size);
             }
             return  G_TLS_INTERACTION_FAILED;
         }
         if(pass_phrase != NULL)
         {
-            CcspTraceInfo((" Freeing pass phrase "));
+            CcspTraceDebug((" Freeing pass phrase "));
             rdkconfig_free(&pass_phrase, pass_size);
         }
     }
@@ -449,7 +449,7 @@ void* verify_devices()
         {
             if((sleepCounter > 6) && (sleepCounter < 12)) //wait for device addition to complete in 60 seconds and print only for another 60 seconds if there is a hang
             {
-                CcspTraceInfo(("Device Addition %u going in main loop",deviceAddNo));
+                CcspTraceDebug(("Device Addition %u going in main loop",deviceAddNo));
             }
             sleepCounter++;
             usleep(sleep_seconds);
@@ -598,7 +598,7 @@ gboolean delete_gwyitem(const char* serial_num)
             strcpy(di.Ipv4,gwydata->clientip->str);
             strcpy(di.mac,gwydata->bcastmacaddress->str);
             strcpy(di.Ipv6,gwydata->gwyipv6->str);
-            CcspTraceInfo(("callback=%p",callback));
+            CcspTraceDebug(("callback=%p",callback));
             callback(&di,0,0);
             g_string_free(gwydata->serial_num, TRUE);
             g_string_free(gwydata->bcastmacaddress, TRUE);
@@ -634,7 +634,7 @@ device_proxy_unavailable_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy
     CcspTraceInfo(("device went down sno=%s", sno ? sno : "NULL"));
     if((g_strcmp0(g_strstrip(ownSerialNo->str),sno) == 0))
     {
-        CcspTraceInfo(("Self Device [%s][%s] not removing",sno,ownSerialNo->str));
+        CcspTraceDebug(("Self Device [%s][%s] not removing",sno,ownSerialNo->str));
         g_free((gpointer)sno);
         return;
     }
@@ -666,7 +666,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     if(xdevlistitem!=NULL)
     {
         deviceAddNo--;
-        CcspTraceInfo(("device already in list skipping sno=%s", sno ? sno : "NULL"));
+        CcspTraceDebug(("device already in list skipping sno=%s", sno ? sno : "NULL"));
         g_free((gpointer)sno);
         return;
     }
@@ -685,7 +685,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                 gchar* receiverid = g_strndup(udn+5, strlen(udn)-5);
                 if(receiverid)
                 {
-                    CcspTraceInfo(("Gateway device receiver id is %s",receiverid));
+                    CcspTraceDebug(("Gateway device receiver id is %s",receiverid));
                     device_info_t di;
                     memset(&di,0,sizeof(di));
                     g_string_assign(gwydata->receiverid, receiverid);
@@ -695,21 +695,21 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
                     {
                         g_string_assign(gwydata->clientip, temp);
                         strncpy(di.Ipv4,gwydata->clientip->str,IPv4_ADDR_SIZE);
-                        CcspTraceInfo(("clientIP=%s",di.Ipv4));
+                        CcspTraceDebug(("clientIP=%s",di.Ipv4));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy_i, "GetBcastMacAddress", "BcastMacAddress" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->bcastmacaddress, temp);
                         strncpy(di.mac,gwydata->bcastmacaddress->str,MAC_ADDR_SIZE);
-                        CcspTraceInfo(("BcastMacAddress=%s",di.mac));
+                        CcspTraceDebug(("BcastMacAddress=%s",di.mac));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy_i, "GetGatewayIPv6", "GatewayIPv6" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->gwyipv6,temp);
                         strncpy(di.Ipv6,gwydata->gwyipv6->str,IPv6_ADDR_SIZE);
-                        CcspTraceInfo(("GatewayIPv6=%s",di.Ipv6));
+                        CcspTraceDebug(("GatewayIPv6=%s",di.Ipv6));
                         g_free(temp);
                     }
                     g_mutex_lock(mutex);
@@ -734,7 +734,7 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     }
     g_free(sno);
     deviceAddNo--;
-    CcspTraceInfo(("Exiting from device_proxy_available_cb_broadband deviceAddNo = %u",deviceAddNo));
+    CcspTraceDebug(("Exiting from device_proxy_available_cb_broadband deviceAddNo = %u",deviceAddNo));
 }
 #else
 static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
@@ -752,7 +752,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     if(xdevlistitem!=NULL)
     {
         deviceAddNo--;
-        CcspTraceInfo(("device already in list skipping sno=%s", sno ? sno : "NULL"));
+        CcspTraceDebug(("device already in list skipping sno=%s", sno ? sno : "NULL"));
         g_free(sno);
         return;
     }
@@ -785,7 +785,7 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                 gchar* receiverid = g_strndup(udn+5, strlen(udn)-5);
                 if(receiverid)
                 {
-                    CcspTraceInfo(("Device receiver id is %s",receiverid));
+                    CcspTraceDebug(("Device receiver id is %s",receiverid));
                     g_string_assign(gwydata->receiverid, receiverid);
                     g_free(receiverid);
                     gchar *temp=NULL;
@@ -795,21 +795,21 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
                     {
                         g_string_assign(gwydata->clientip, temp);
                         strncpy(di.Ipv4,gwydata->clientip->str,IPv4_ADDR_SIZE);
-                        CcspTraceInfo(("clientIP=%s",di.Ipv4));
+                        CcspTraceDebug(("clientIP=%s",di.Ipv4));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy, "GetBcastMacAddress", "BcastMacAddress" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->bcastmacaddress, temp);
                         strncpy(di.mac,gwydata->bcastmacaddress->str,MAC_ADDR_SIZE);
-                        CcspTraceInfo(("BcastMacAddress=%s",di.mac));
+                        CcspTraceDebug(("BcastMacAddress=%s",di.mac));
                         g_free(temp);
                     }
                     if ( processStringRequest((GUPnPServiceProxy *)gwydata->sproxy, "GetGatewayIPv6", "GatewayIPv6" , &temp, FALSE))
                     {
                         g_string_assign(gwydata->gwyipv6,temp);
                         strncpy(di.Ipv6,gwydata->gwyipv6->str,IPv6_ADDR_SIZE);
-                        CcspTraceInfo(("GatewayIPv6=%s",di.Ipv6));
+                        CcspTraceDebug(("GatewayIPv6=%s",di.Ipv6));
                         g_free(temp);
                     }
                     g_mutex_lock(mutex);
@@ -834,13 +834,13 @@ static void device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *
     }
     g_free(sno);
     deviceAddNo--;
-    CcspTraceInfo(("Exiting from device_proxy_available_cb deviceAddNo = %u",deviceAddNo));
+    CcspTraceDebug(("Exiting from device_proxy_available_cb deviceAddNo = %u",deviceAddNo));
 }
 #endif
 
 void remove_entries_in_list()
 {
-    CcspTraceInfo(("%s:%d Entered.",__FUNCTION__,__LINE__));
+    CcspTraceDebug(("%s:%d Entered.",__FUNCTION__,__LINE__));
     if (g_list_length(xdevlist) > 0)
     {
         GList *element = NULL;
@@ -875,11 +875,11 @@ void remove_entries_in_list()
  To update flag, we need lock because the same flag is used by stop_discovery_process() thread */
 int stop_discovery()
 {
-    CcspTraceInfo(("%s:%d Called.",__FUNCTION__,__LINE__));
+    CcspTraceDebug(("%s:%d Called.",__FUNCTION__,__LINE__));
     g_mutex_lock(&stop_discovery_mutex);
     idm_stop_discovery_triggered = 1;
     g_mutex_unlock(&stop_discovery_mutex);
-    CcspTraceInfo(("%s:%d completed",__FUNCTION__,__LINE__));
+    CcspTraceDebug(("%s:%d completed",__FUNCTION__,__LINE__));
     return 0;
 }
 void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info_t*,uint,uint))
@@ -1070,10 +1070,10 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
 #endif
 #endif
     sleep_seconds=((dc_obj->loss_detection_window+8)*1000000);
-    CcspTraceInfo(("%s %d calling discovery_interval_configuration function %u loss_detection_window=%u",__FUNCTION__,__LINE__,dc_obj->discovery_interval,dc_obj->loss_detection_window));
+    CcspTraceDebug(("%s %d calling discovery_interval_configuration function %u loss_detection_window=%u",__FUNCTION__,__LINE__,dc_obj->discovery_interval,dc_obj->loss_detection_window));
     dc_obj->discovery_interval=dc_obj->discovery_interval*1000;
     discovery_interval_configuration(dc_obj->discovery_interval,dc_obj->loss_detection_window);
-    CcspTraceInfo(("done timeout source assigning\n"));
+    CcspTraceDebug(("done timeout source assigning\n"));
     if(idm_upnp_init_status == FALSE) //Start verify_devices thread only for first time.
     {
         g_thread_create(verify_devices, NULL,FALSE, NULL);
@@ -1090,9 +1090,9 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
 #else
     gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (cp), FALSE);
 #endif
-    CcspTraceInfo(("freeing server memory"));
+    CcspTraceDebug(("freeing server memory"));
     free_server_memory();
-    CcspTraceInfo(("removing device list entries"));
+    CcspTraceDebug(("removing device list entries"));
     remove_entries_in_list();
     g_main_loop_unref (main_loop);
     main_loop = NULL;
@@ -1107,5 +1107,5 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     g_mutex_free(mutex);
     /* upnp needs four seconds before restarting for avoiding port bind issues */
     sleep(4);
-    CcspTraceInfo(("%s:%d Completed.",__FUNCTION__,__LINE__));
+    CcspTraceDebug(("%s:%d Completed.",__FUNCTION__,__LINE__));
 }
