@@ -176,12 +176,12 @@ int EventListen(void)
         }
         else
         {
-            CcspTraceDebug(("Received msg that is not a SE_MSG_NOTIFICATION (%d)\n", msg_type));
+            CcspTraceDebug(("Received msg that is not a SE_MSG_NOTIFICATION (%d)", msg_type));
         }
     }
     else
     {
-        CcspTraceDebug(("%s: Received no event retval=%d\n", __FUNCTION__, retval));
+        CcspTraceDebug(("%s: Received no event retval=%d", __FUNCTION__, retval));
     }
     return ret;
 }
@@ -268,7 +268,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
 
     if(access(se_cert_p12, F_OK) != -1)
     {
-        CcspTraceDebug(("Getting passcode\n"));
+        CcspTraceDebug(("Getting passcode"));
 
         if(rdkconfig_get(&pass_phrase, &pass_size, se_cert_conf_file) == RDKCONFIG_FAIL)
         {
@@ -294,7 +294,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
                         xupnp_error ? xupnp_error->message : "unknown error"));
             if(xupnp_error)
             {
-                CcspTraceDebug((" %s\n",xupnp_error->message));
+                CcspTraceDebug((" %s",xupnp_error->message));
             }
             g_error_free (xupnp_error);
             if(pass_phrase != NULL)
@@ -333,7 +333,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
 
           if(xupnp_error != NULL) {
           
-                CcspTraceError(("Failure reason for certificate creation: %s\n", xupnp_error->message));
+                CcspTraceError(("Failure reason for certificate creation: %s", xupnp_error->message));
                 g_clear_error(&xupnp_error);
             }
             return  G_TLS_INTERACTION_FAILED;
@@ -362,7 +362,7 @@ xupnp_tls_interaction_request_certificate (GTlsInteraction              *interac
         CcspTraceError(("g_tls_certificate_new_from_files failed"));
 
         if(xupnp_error != NULL) {
-            CcspTraceError(("Failure reason for certificate creation: %s\n", xupnp_error->message));
+            CcspTraceError(("Failure reason for certificate creation: %s", xupnp_error->message));
             g_clear_error(&xupnp_error);
           }
           return  G_TLS_INTERACTION_FAILED;
@@ -1003,7 +1003,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
 #endif
 #endif
         if (error) {
-            CcspTraceError(("%s:%d Error creating the Device Protection Broadcast context: %s\n", __FUNCTION__,__LINE__,error->message));
+            CcspTraceError(("%s:%d Error creating the Device Protection Broadcast context: %s", __FUNCTION__,__LINE__,error->message));
             /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
             g_clear_error(&error);
         }
@@ -1073,7 +1073,7 @@ void start_discovery(discovery_config_t* dc_obj,int (*func_callback)(device_info
     CcspTraceDebug(("%s %d calling discovery_interval_configuration function %u loss_detection_window=%u",__FUNCTION__,__LINE__,dc_obj->discovery_interval,dc_obj->loss_detection_window));
     dc_obj->discovery_interval=dc_obj->discovery_interval*1000;
     discovery_interval_configuration(dc_obj->discovery_interval,dc_obj->loss_detection_window);
-    CcspTraceDebug(("done timeout source assigning\n"));
+    CcspTraceDebug(("done timeout source assigning"));
     if(idm_upnp_init_status == FALSE) //Start verify_devices thread only for first time.
     {
         g_thread_create(verify_devices, NULL,FALSE, NULL);

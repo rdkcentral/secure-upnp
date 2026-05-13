@@ -145,7 +145,7 @@ xmlDoc * open_document(const char * file_name)
     ret = xmlReadFile(file_name, NULL, 0);
     if (ret == NULL)
     {
-        //CcspTraceError(("Failed to parse %s\n", file_name));
+        //CcspTraceError(("Failed to parse %s", file_name));
         return NULL;
     }
     return ret;
@@ -180,7 +180,7 @@ int set_content(xmlDoc* doc, const char * node_name, const char * new_value)
     target_node = get_node_by_name(root_element, node_name);
     if (target_node==NULL)
     {
-        CcspTraceError(("Couldn't locate the Target node\n"));
+        CcspTraceError(("Couldn't locate the Target node"));
         CcspTraceError(("XML: target node not found"));
         return 1;
     }
@@ -193,32 +193,32 @@ BOOL updatexmldata(const char* xmlfilename, const char* struuid,const char* seri
     xmlDoc * doc = open_document(xmlfilename);
     if (doc == NULL)
     {
-        CcspTraceError(("Error reading the Device XML file\n"));
+        CcspTraceError(("Error reading the Device XML file"));
         CcspTraceError(("failed to read device XML file"));
         return FALSE;
     }
     if (set_content(doc, "UDN", struuid)!=0)
     {
-        CcspTraceError(("Error setting the unique device id in conf xml\n"));
+        CcspTraceError(("Error setting the unique device id in conf xml"));
         CcspTraceError(("failed to set UDN in device XML"));
         return FALSE;
     }
     if (set_content(doc, "serialNumber", serialno)!=0)
     {
-        CcspTraceError(("Error setting the serial number in conf xml\n"));
+        CcspTraceError(("Error setting the serial number in conf xml"));
         CcspTraceError(("failed to set serial number in device XML"));
         return FALSE;
     }
     FILE *fp = fopen(xmlfilename, "w");
     if (fp==NULL)
     {
-        CcspTraceError(("Error opening the conf xml file for writing\n"));
+        CcspTraceError(("Error opening the conf xml file for writing"));
         CcspTraceError(("failed to open device XML for writing"));
         return FALSE;
     }
     else if (xmlDocFormatDump(fp, doc, 1) == -1)
     {
-        CcspTraceError(("Could not write the conf to xml file\n"));
+        CcspTraceError(("Could not write the conf to xml file"));
         CcspTraceError(("failed to write device XML file"));
         /*Coverity Fix CID 125137,28460  RESOURCE_LEAK */
         fclose(fp);
@@ -433,7 +433,7 @@ int idm_server_start(char* Interface, char * base_mac)
     upnpService = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (baseDev), IDM_SERVICE);
     if (!upnpService)
     {
-        CcspTraceError(("Cannot get DiscoverFriendlies service\n"));
+        CcspTraceError(("Cannot get DiscoverFriendlies service"));
         CcspTraceError(("failed to get DiscoverFriendlies UPnP service"));
         return 1;
     }
