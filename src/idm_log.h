@@ -18,34 +18,37 @@
  */
 /**
  * @file idm_log.h
- * @brief IDM logging interface — shared between idm_client.c and idm_server.c.
+ * @brief IDM logging macros backed by rdklogger.
  *
- * All writes go to /rdklogs/logs/InterDeviceManager.txt.0.
- * Log rotation is handled externally by rdklogger; the open file descriptor
- * is transparently reopened after rotation via inode comparison.
+ * Uses RDK_LOG() with the "LOG.RDK.INTERDEVICEMANAGER" log4c category —
+ * identical to the module used by the interdevicemanager binary — which
+ * routes all output to /rdklogs/logs/InterDeviceManager.txt.
+ * Timestamps, log rotation, and level filtering are handled by rdklogger.
+ *
+ * Link with -lrdkloggers (declared in libupnpidm_la_LIBADD).
  */
 
 #ifndef IDM_LOG_H
 #define IDM_LOG_H
 
-#define IDM_LOG_FILE "/rdklogs/logs/InterDeviceManager.txt.0"
+#include "rdk_debug.h"
+
+#define IDM_LOG_MODULE "LOG.RDK.INTERDEVICEMANAGER"
 
 /**
- * IDM_LOG_INFO(fmt, ...) — write a timestamped INFO line to InterDeviceManager.txt.0.
- * IDM_LOG_ERR(fmt, ...) — write a timestamped ERROR line.
+ * IDM_LOG_INFO(fmt, ...) — INFO-level entry in InterDeviceManager.txt.
+ * IDM_LOG_ERR(fmt, ...)  — ERROR-level entry in InterDeviceManager.txt.
  *
  * A newline is appended automatically; do not include a trailing "\n" in fmt.
- * Format matches the standard RDK log pattern:
- *   YYMMDD-HH:MM:SS.uuuuuu [mod=INTERDEVICEMANAGER, lvl=<LEVEL>] [tid=NNN] func line - message
+ * Each line is prefixed with (function:line) matching the CcspTraceInfo
+ * convention used by the interdevicemanager component.
  */
 #define IDM_LOG_INFO(fmt, ...) \
-    idm_consolelog(__func__, __LINE__, "INFO", fmt, ##__VA_ARGS__)
+    RDK_LOG(RDK_LOG_INFO,  IDM_LOG_MODULE, \
+            "(%s:%d) " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
 
 #define IDM_LOG_ERR(fmt, ...) \
-    idm_consolelog(__func__, __LINE__, "ERROR", fmt, ##__VA_ARGS__)
-
-void idm_consolelog(const char *func, int line, const char *level,
-                    const char *fmt, ...)
-    __attribute__((format(printf, 4, 5)));
+    RDK_LOG(RDK_LOG_ERROR, IDM_LOG_MODULE, \
+            "(%s:%d) " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
 
 #endif /* IDM_LOG_H */
