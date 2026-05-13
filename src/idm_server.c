@@ -323,7 +323,7 @@ int idm_server_start(char* Interface, char * base_mac)
         int result = updatexmldata("/etc/xupnp/IDM_DP.xml",struuid_dp,serial_num->str);
         if (!result)
         {
-            CcspTraceError(("failed to open device XML file /etc/xupnp/IDM_DP.xml"));
+            CcspTraceError(("Failed to open the device xml file /etc/xupnp/IDM_DP.xml"));
         }
 #ifndef GUPNP_1_2
 #ifndef ENABLE_HW_CERT_USAGE
@@ -406,7 +406,7 @@ int idm_server_start(char* Interface, char * base_mac)
     int result = updatexmldata("/etc/xupnp/IDM.xml",struuid,serial_num->str);
     if (!result)
     {
-        CcspTraceError(("failed to open device XML file /etc/xupnp/IDM.xml"));
+        CcspTraceError(("Failed to open the device xml file /etc/xupnp/IDM.xml"));
     }
     else
     {
