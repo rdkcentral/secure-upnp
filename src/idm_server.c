@@ -127,7 +127,7 @@ get_account_id_cb (GUPnPService *service, GUPnPServiceAction *action, gpointer u
 {
     memset(accountId,0,ACCOUNTID_SIZE);
     getAccountId(accountId);
-    CcspTraceInfo(("accountId=%s",accountId));
+    CcspTraceInfo(("accountId=%s\n",accountId));
     gupnp_service_action_set (action, "AccountId", G_TYPE_STRING, accountId,NULL);
     gupnp_service_action_return (action);
 }
@@ -180,7 +180,7 @@ int set_content(xmlDoc* doc, const char * node_name, const char * new_value)
     target_node = get_node_by_name(root_element, node_name);
     if (target_node==NULL)
     {
-        CcspTraceError(("Couldn't locate the Target node"));
+        CcspTraceError(("Couldn't locate the Target node\n"));
         return 1;
     }
     xmlNodeSetContent(target_node,new_value);
@@ -192,28 +192,28 @@ BOOL updatexmldata(const char* xmlfilename, const char* struuid,const char* seri
     xmlDoc * doc = open_document(xmlfilename);
     if (doc == NULL)
     {
-        CcspTraceError(("Error reading the Device XML file"));
+        CcspTraceError(("Error reading the Device XML file\n"));
         return FALSE;
     }
     if (set_content(doc, "UDN", struuid)!=0)
     {
-        CcspTraceError(("Error setting the unique device id in conf xml"));
+        CcspTraceError(("Error setting the unique device id in conf xml\n"));
         return FALSE;
     }
     if (set_content(doc, "serialNumber", serialno)!=0)
     {
-        CcspTraceError(("Error setting the serial number in conf xml"));
+        CcspTraceError(("Error setting the serial number in conf xml\n"));
         return FALSE;
     }
     FILE *fp = fopen(xmlfilename, "w");
     if (fp==NULL)
     {
-        CcspTraceError(("Error opening the conf xml file for writing"));
+        CcspTraceError(("Error opening the conf xml file for writing\n"));
         return FALSE;
     }
     else if (xmlDocFormatDump(fp, doc, 1) == -1)
     {
-        CcspTraceError(("Could not write the conf to xml file"));
+        CcspTraceError(("Could not write the conf to xml file\n"));
         /*Coverity Fix CID 125137,28460  RESOURCE_LEAK */
         fclose(fp);
         xmlFreeDoc(doc);
@@ -228,20 +228,20 @@ BOOL updatexmldata(const char* xmlfilename, const char* struuid,const char* seri
 
 void free_server_memory()
 {
-    CcspTraceInfo(("Inside %s",__FUNCTION__));
+    CcspTraceInfo(("Inside %s\n",__FUNCTION__));
 #ifdef IDM_DEBUG
     gupnp_root_device_set_available (baseDev, FALSE);
     g_clear_object (&upnpService);
     g_clear_object (&baseDev);
     g_clear_object (&server_upnpContext);
 #else
-    CcspTraceDebug(("Setting root device set as false%s",__FUNCTION__));
+    CcspTraceDebug(("Setting root device set as false%s\n",__FUNCTION__));
     gupnp_root_device_set_available (dev, FALSE);
-    CcspTraceDebug(("Clearing upnpIdService %s",__FUNCTION__));
+    CcspTraceDebug(("Clearing upnpIdService %s\n",__FUNCTION__));
     g_clear_object(&upnpIdService);
-    CcspTraceDebug(("Clearing dev %s",__FUNCTION__));
+    CcspTraceDebug(("Clearing dev %s\n",__FUNCTION__));
     g_clear_object(&dev);
-    CcspTraceDebug(("Clearing server_upnpContextDeviceProtect %s",__FUNCTION__));
+    CcspTraceDebug(("Clearing server_upnpContextDeviceProtect %s\n",__FUNCTION__));
     g_clear_object(&server_upnpContextDeviceProtect);
 #endif
 }
@@ -262,11 +262,11 @@ BOOL getUidfromRecvId()
     }
     if(result == TRUE)
     {
-        CcspTraceInfo(("getUidfromRecvId: recvId: %s", recv_id->str));
+        CcspTraceInfo(("getUidfromRecvId: recvId: %s\n", recv_id->str));
     }
     else
     {
-        CcspTraceInfo(("%s: toklength is %u" ,__FUNCTION__, toklength));
+        CcspTraceInfo(("%s: toklength is %u\n",__FUNCTION__, toklength));
     }
     g_strfreev(tokens);
     return result;
@@ -275,7 +275,7 @@ BOOL getUUID(char *outValue)
 {
     BOOL result = FALSE;
     if (!check_null_idm(outValue)) {
-        CcspTraceError(("getUUID : NULL string !"));
+        CcspTraceError(("getUUID : NULL string !\n"));
         return result;
     }
     if (getUidfromRecvId()){
@@ -285,12 +285,12 @@ BOOL getUUID(char *outValue)
         }
         else
         {
-            CcspTraceInfo(("getUUID : empty recvId"));
+            CcspTraceInfo(("getUUID : empty recvId\n"));
         }
     }
     else
     {
-        CcspTraceError(("getUUID : could not get UUID"));
+        CcspTraceError(("getUUID : could not get UUID\n"));
     }
     return result;
 }
@@ -301,7 +301,7 @@ int idm_server_start(char* Interface, char * base_mac)
     g_type_init();
     GError* error = 0;
     strcpy(interface,Interface);
-    CcspTraceInfo(("%s %d interface=%s",__FUNCTION__,__LINE__,interface));
+    CcspTraceInfo(("%s %d interface=%s\n",__FUNCTION__,__LINE__,interface));
     getipaddress((const char *)interface,clientIp,FALSE);
     serial_num = g_string_new(NULL);
     getserialnum(serial_num);
@@ -309,7 +309,7 @@ int idm_server_start(char* Interface, char * base_mac)
     strcpy_s(bcastMacaddress, MAC_ADDR_SIZE, base_mac);
 #ifndef IDM_DEBUG
 #ifndef ENABLE_HW_CERT_USAGE
-    CcspTraceInfo(("%s cert file=%s  key file = %s", __FUNCTION__, certFile, keyFile));
+    CcspTraceInfo(("%s cert file=%s  key file = %s\n", __FUNCTION__, certFile, keyFile));
     if((access(certFile,F_OK ) == 0) && (access(keyFile,F_OK ) == 0) && (access(caFile,F_OK ) == 0))
     {
 #else
@@ -321,7 +321,7 @@ int idm_server_start(char* Interface, char * base_mac)
         int result = updatexmldata("/etc/xupnp/IDM_DP.xml",struuid_dp,serial_num->str);
         if (!result)
         {
-            CcspTraceError(("Failed to open the device xml file /etc/xupnp/IDM_DP.xml"));
+            CcspTraceError(("Failed to open the device xml file /etc/xupnp/IDM_DP.xml\n"));
         }
 #ifndef GUPNP_1_2
 #ifndef ENABLE_HW_CERT_USAGE
@@ -329,12 +329,12 @@ int idm_server_start(char* Interface, char * base_mac)
 #else
         if(access(se_cert_p12, F_OK) == 0)
         {
-            CcspTraceInfo(("IDM Server: SE HW certificate is available. Creating device protect without extracted files"));
+            CcspTraceInfo(("IDM Server: SE HW certificate is available. Creating device protect without extracted files\n"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( NULL,interface,DEVICE_PROTECTION_CONTEXT_PORT,NULL,NULL, &error);
         }
         else
         {
-            CcspTraceInfo(("IDM Server: SE HW certificate is not available. Creating device protect with extracted files"));
+            CcspTraceInfo(("IDM Server: SE HW certificate is not available. Creating device protect with extracted files\n"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( NULL,interface,DEVICE_PROTECTION_CONTEXT_PORT,certFile,keyFile, &error);
         }
 #endif
@@ -344,20 +344,20 @@ int idm_server_start(char* Interface, char * base_mac)
 #else
         if(access(se_cert_p12, F_OK) == 0)
         {
-            CcspTraceInfo(("IDM Server: SE HW certificate is available. Creating device protect without extracted files"));
+            CcspTraceInfo(("IDM Server: SE HW certificate is available. Creating device protect without extracted files\n"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( interface,DEVICE_PROTECTION_CONTEXT_PORT,NULL,NULL, &error);
         }
         else 
         {
-            CcspTraceInfo(("IDM Server: SE HW certificate is not available. Creating device protect with extracted files"));
+            CcspTraceInfo(("IDM Server: SE HW certificate is not available. Creating device protect with extracted files\n"));
             server_upnpContextDeviceProtect = gupnp_context_new_s ( interface,DEVICE_PROTECTION_CONTEXT_PORT,certFile,keyFile, &error);
         }
 #endif
 #endif
-        CcspTraceInfo(("created new upnpContext"));
+        CcspTraceInfo(("created new upnpContext\n"));
         if (error)
         {
-            CcspTraceError(("%s:Error creating the Device Protection Broadcast context: %s", __FUNCTION__,error->message));
+            CcspTraceError(("%s:Error creating the Device Protection Broadcast context: %s\n", __FUNCTION__,error->message));
             /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
             g_clear_error(&error);
         }
@@ -365,7 +365,7 @@ int idm_server_start(char* Interface, char * base_mac)
         {
             gupnp_context_set_subscription_timeout(server_upnpContextDeviceProtect, 0);
             // Set TLS config params here.
-            CcspTraceInfo(("%s setting CA cert : %s", __FUNCTION__, caFile));
+            CcspTraceInfo(("%s setting CA cert : %s\n", __FUNCTION__, caFile));
             gupnp_context_set_tls_params(server_upnpContextDeviceProtect,caFile,NULL, NULL);
 #ifndef GUPNP_1_2
             dev = gupnp_root_device_new (server_upnpContextDeviceProtect, "/etc/xupnp/IDM_DP.xml", "/etc/xupnp/");
@@ -376,11 +376,11 @@ int idm_server_start(char* Interface, char * base_mac)
             upnpIdService = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (dev), IDM_DP_SERVICE);
             if (!upnpIdService)
             {
-                CcspTraceError(("Cannot get X1Identity service"));
+                CcspTraceError(("Cannot get X1Identity service\n"));
             }
             else
             {
-                CcspTraceInfo(("XUPNP Identity service successfully created"));
+                CcspTraceInfo(("XUPNP Identity service successfully created\n"));
             }
             g_signal_connect (upnpIdService, "action-invoked::GetBcastMacAddress", G_CALLBACK (get_bcastmacaddress_cb), NULL);
             g_signal_connect (upnpIdService, "query-variable::BcastMacAddress", G_CALLBACK (query_bcastmacaddress_cb), NULL);
@@ -394,21 +394,21 @@ int idm_server_start(char* Interface, char * base_mac)
     }
     else
     {
-        CcspTraceInfo(("%s:mandatory files doesn't present",__FUNCTION__));
+        CcspTraceInfo(("%s:mandatory files doesn't present\n",__FUNCTION__));
     }
 #else
     recv_id=g_string_new(NULL);
     getUUID(uUid);
     const char* struuid = uUid;
-    CcspTraceInfo(("recv_id=%s",struuid));
+    CcspTraceInfo(("recv_id=%s\n",struuid));
     int result = updatexmldata("/etc/xupnp/IDM.xml",struuid,serial_num->str);
     if (!result)
     {
-        CcspTraceError(("Failed to open the device xml file /etc/xupnp/IDM.xml"));
+        CcspTraceError(("Failed to open the device xml file /etc/xupnp/IDM.xml\n"));
     }
     else
     {
-        CcspTraceInfo(("Updated the device xml file:IDM.XML uuid: %s",struuid));
+        CcspTraceInfo(("Updated the device xml file:IDM.XML uuid: %s\n",struuid));
     }
 #ifndef GUPNP_1_2
     server_upnpContext = gupnp_context_new (NULL, interface, SERVER_CONTEXT_PORT, &error);
@@ -416,7 +416,7 @@ int idm_server_start(char* Interface, char * base_mac)
     server_upnpContext = gupnp_context_new (interface, SERVER_CONTEXT_PORT, &error);
 #endif
     if (error) {
-        CcspTraceError(("Error creating the Broadcast context: %s", error->message));
+        CcspTraceError(("Error creating the Broadcast context: %s\n", error->message));
         /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
         g_clear_error(&error);
         return 1;
@@ -431,7 +431,7 @@ int idm_server_start(char* Interface, char * base_mac)
     upnpService = gupnp_device_info_get_service(GUPNP_DEVICE_INFO (baseDev), IDM_SERVICE);
     if (!upnpService)
     {
-        CcspTraceError(("Cannot get DiscoverFriendlies service"));
+        CcspTraceError(("Cannot get DiscoverFriendlies service\n"));
         return 1;
     }
     g_signal_connect (upnpService, "action-invoked::GetBcastMacAddress", G_CALLBACK (get_bcastmacaddress_cb), NULL);
@@ -441,6 +441,6 @@ int idm_server_start(char* Interface, char * base_mac)
     g_signal_connect (upnpService, "action-invoked::GetGatewayIPv6", G_CALLBACK (get_gwyipv6_cb), NULL);
     g_signal_connect (upnpService, "query-variable::GatewayIPv6", G_CALLBACK (query_gwyipv6_cb), NULL);
 #endif
-    CcspTraceInfo(("completed %s",__FUNCTION__));
+    CcspTraceInfo(("completed %s\n",__FUNCTION__));
     return 0;
 }
