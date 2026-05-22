@@ -24,6 +24,7 @@
 #endif
 #include <glib/gprintf.h>
 #include <glib/gstdio.h>
+#include "ccsp_trace.h"
 #ifndef BROADBAND
 #ifdef ENABLE_RFC
 #include "rfcapi.h"
@@ -49,7 +50,7 @@ gboolean getserialnum(GString* ownSerialNo)
  
     result = g_file_get_contents ("//etc//udhcpc.vendor_specific", &udhcpcvendorfile, NULL, &error);
     if (result == FALSE) {
-        g_message("Problem in reading /etc/udhcpcvendorfile file %s", error->message);
+        CcspTraceError(("Problem in reading /etc/udhcpcvendorfile file %s\n", error->message));
     }
     else
     {
@@ -67,7 +68,7 @@ gboolean getserialnum(GString* ownSerialNo)
                 {
                     g_string_assign(ownSerialNo, g_strstrip(tokens[loopvar+2]));
                     bSerialNum=TRUE;
-                    g_message("serialNumber fetched from udhcpcvendorfile:%s", ownSerialNo->str);
+                    CcspTraceInfo(("serialNumber fetched from udhcpcvendorfile:%s\n", ownSerialNo->str));
                 }
                 result = TRUE;
                 break;
@@ -88,14 +89,14 @@ gboolean getserialnum(GString* ownSerialNo)
     char serialNumber[50] = {0};
     if ( platform_hal_GetSerialNumber(serialNumber) == 0)
     {
-        g_message("serialNumber returned from hal:%s", serialNumber);
+        CcspTraceInfo(("serialNumber returned from hal:%s\n", serialNumber));
         g_string_assign(ownSerialNo, serialNumber);
         result = TRUE;
         bSerialNum=TRUE;
     }
     else
     {
-        g_message("ERROR: Unable to get SerialNumber");
+        CcspTraceError(("ERROR: Unable to get SerialNumber\n"));
     }
     return result;
 #else
@@ -109,21 +110,21 @@ gboolean getserialnum(GString* ownSerialNo)
     {
         if(param.buffer && param.bufLen)
         {
-            g_message( " serialized data %s  \n",param.buffer );
+            CcspTraceInfo(("serialized data %s\n", param.buffer));
             g_string_assign(ownSerialNo,param.buffer);
             bRet = true;
             bSerialNum=TRUE;
         }
         else
         {
-            g_message( " serialized data is empty  \n" );
+            CcspTraceError(("serialized data is empty\n"));
             bRet = false;
         }
     }
     else
     {
         bRet = false;
-        g_message(  "IARM CALL failed  for mfrtype \n");
+        CcspTraceError(("IARM CALL failed for mfrtype\n"));
     }
     return bRet;
 #endif
@@ -202,7 +203,7 @@ BOOL getAccountId(char *outValue)
     }
     else
     {
-        g_message("getAccountId: Unable to get the Account Id");
+        CcspTraceError(("getAccountId: Unable to get the Account Id\n"));
     }
     return FALSE;
 }
@@ -217,7 +218,7 @@ BOOL getAccountId(char *outValue)
     {
 	if (((param.value == NULL)))
 	{
-	    g_message("getAccountId : NULL string !");
+	    CcspTraceError(("getAccountId: NULL string!\n"));
 	    return result;
 	}
 	else
@@ -230,10 +231,10 @@ BOOL getAccountId(char *outValue)
     }
     else
     {
-       g_message("getAccountId: getRFCParameter Failed : %s\n", getRFCErrorString(status));
+       CcspTraceError(("getAccountId: getRFCParameter Failed: %s\n", getRFCErrorString(status)));
     }
 #else
-    g_message("Not built with RFC support.");
+    CcspTraceInfo(("getAccountId: Not built with RFC support\n"));
 #endif
     return result;
 }
