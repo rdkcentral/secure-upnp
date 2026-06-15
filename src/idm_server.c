@@ -300,13 +300,16 @@ int idm_server_start(char* Interface, char * base_mac)
     g_thread_init (NULL);
     g_type_init();
     GError* error = 0;
-    strcpy(interface,Interface);
+    errno_t rc = -1;
+    strncpy(interface,Interface,IPv4_ADDR_SIZE-1);
+    interface[IPv4_ADDR_SIZE-1] = '\0';
     CcspTraceInfo(("%s %d interface=%s\n",__FUNCTION__,__LINE__,interface));
     getipaddress((const char *)interface,clientIp,FALSE);
     serial_num = g_string_new(NULL);
     getserialnum(serial_num);
     getipaddress((const char *)interface,gwyIpv6,TRUE);
-    strcpy_s(bcastMacaddress, MAC_ADDR_SIZE, base_mac);
+    rc = strcpy_s(bcastMacaddress, MAC_ADDR_SIZE, base_mac);
+    ERR_CHK(rc);
 #ifndef IDM_DEBUG
 #ifndef ENABLE_HW_CERT_USAGE
     CcspTraceInfo(("%s cert file=%s  key file = %s\n", __FUNCTION__, certFile, keyFile));

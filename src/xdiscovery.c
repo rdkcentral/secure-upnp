@@ -171,7 +171,7 @@ unsigned short dp_hashindex (long ipaddr)
     // Fold the ip address to get a 9 bit hansh index
     ret =(ipaddr & 0x3FF) + ((ipaddr >> 10)&0x3FF) + ((ipaddr >> 20)&0x3FF) 
                                                    + ((ipaddr >> 30) & 0x3FF);
-    ret = ((ret & 0x3FF) + ((ret >> 10) && 0x3FF)) &0x3FF;
+    ret = ((ret & 0x3FF) + ((ret >> 10) & 0x3FF)) &0x3FF;
     if (ret) 
        ret = ret-1;
     return(ret);
@@ -367,7 +367,8 @@ dp_wlist_ss_t dpnode_insert(long ipaddr, char *macaddr)
              g_message("dpnode_insert:collsion ip:%lu mac:%s hash index %d\n",ipaddr, macaddr, index);
              dp_wlist[pindex].ofb_index = index;  
              dp_wlist[index].ipaddr = ipaddr;
-             strncpy(dp_wlist[index].macaddr, macaddr, MAC_ADDRESS_SIZE);
+             strncpy(dp_wlist[index].macaddr, macaddr, MAC_ADDRESS_SIZE-1);
+	     dp_wlist[index].macaddr[MAC_ADDRESS_SIZE-1] = '\0';
              dp_wlist[index].ofb_index = 0;
           }
        }
@@ -388,7 +389,8 @@ dp_wlist_ss_t dpnode_insert(long ipaddr, char *macaddr)
        {
              g_message("dpnode_insert:mac update ip:%lu mac:%s hash index %d\n",ipaddr, macaddr, index);
              // update mac address
-             strncpy(dp_wlist[index].macaddr, macaddr,MAC_ADDRESS_SIZE);
+             strncpy(dp_wlist[index].macaddr, macaddr,MAC_ADDRESS_SIZE-1);
+	     dp_wlist[index].macaddr[MAC_ADDRESS_SIZE-1] = '\0';
        }
        else {
           ret = DP_WLIST_ERROR;
@@ -410,7 +412,7 @@ void dpnode_delete(long ipaddr, char *macaddr)
 {
    dp_wlist_ss_t stat; 
    int ret = 0;
-   unsigned short index, pindex, tindex;
+   short index, pindex, tindex;
 
    if (((index = dpnode_lookup(ipaddr, macaddr, &stat, &pindex)) >= 0) && (index != DP_WLIST_ERROR))
    {
@@ -1302,6 +1304,9 @@ device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     if(!gwydata->sproxy)
     {
        deviceAddNo--;
+       free_gwydata(gwydata);
+       g_free(gwydata);
+       g_free(sno);
        g_message("Unable to get the services, sproxy null. returning");
        return;
     }
@@ -1371,6 +1376,8 @@ device_proxy_available_cb (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     }
     g_free(sno);
     deviceAddNo--;
+    free_gwydata(gwydata);
+    g_free(gwydata);
     g_message("Exting from device_proxy_available_cb deviceAddNo = %u",deviceAddNo);
 
 //    }
@@ -1460,6 +1467,8 @@ device_proxy_available_cb_client (GUPnPControlPoint *cp, GUPnPDeviceProxy *dprox
 			{
 			    g_message("Failed to update gw data into the list");
 			    g_critical("Unable to update the Client device-%s in the list",(char*)gwydata->serial_num);
+                            free_gwydata(gwydata);
+                            g_free(gwydata);
 			    return;
 			}
 		    }
@@ -1477,6 +1486,8 @@ device_proxy_available_cb_client (GUPnPControlPoint *cp, GUPnPDeviceProxy *dprox
     }
     g_message("Discovered a Xi device");
     g_free(sno);
+    free_gwydata(gwydata);
+    g_free(gwydata);
     deviceAddNo--;
     g_message("Exting from Device_proxy_available_cb client deviceAddNo = %u",deviceAddNo);
 
@@ -1659,6 +1670,8 @@ device_proxy_available_cb_gw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     }
     g_free(sno);
     deviceAddNo--;
+    free_gwydata(gwydata);
+    g_free(gwydata);
     g_message("Discovered a XG device");
     g_message("Exting from device_proxy_available_cb_gateway deviceAddNo = %u",deviceAddNo);
 }
@@ -1803,6 +1816,8 @@ device_proxy_available_cb_bgw (GUPnPControlPoint *cp, GUPnPDeviceProxy *dproxy)
     }
     g_free(sno);
     deviceAddNo--;
+    free_gwydata(gwydata);
+    g_free(gwydata);
     g_message("Discovered a XB device");
     g_message("Exting from device_proxy_available_cb_broadband deviceAddNo = %u",deviceAddNo);
 }
@@ -2845,7 +2860,8 @@ gboolean process_gw_services_gateway_config(GUPnPServiceProxy *sproxy, GwyDevice
 
     if ( processStringRequest(sproxy, "GetIPSubNet", "IPSubNet" , &temp, FALSE))
     {
-        g_string_assign(gwData->ipSubNet, temp);
+        if(temp == NULL) return FALSE;
+	g_string_assign(gwData->ipSubNet, temp);
         if(temp && strlen(temp))
 #if !defined (NO_MOCA_FEATURE_SUPPORT)
             addRouteToMocaBridge(temp);
@@ -3336,8 +3352,6 @@ gboolean delete_gwyitem(const char* serial_num)
 
 gboolean sendDiscoveryResult(const char* outfilename)
 {
-    gboolean firstXG1GwData=TRUE;
-    gboolean firstXG2GwData=TRUE;
     const gchar v4ModeValue[]="ipv4";
     const gchar v6ModeValue[]="ipv6";
     gboolean isMediaClientConnected=FALSE;
@@ -3357,8 +3371,13 @@ gboolean sendDiscoveryResult(const char* outfilename)
     {
         xdevlistDup = g_list_copy(xdevlist);
         g_mutex_unlock(mutex);
-        GList *element;
-        element = g_list_first(xdevlistDup);
+        GList *element, *element_root;
+        element_root = element = g_list_first(xdevlistDup);
+        if(element_root == NULL) {
+	   g_string_free(localOutputContents, TRUE);	
+	   g_string_free(logDevicesList, TRUE);	
+	   return FALSE;
+	}
         while(element)
         {
             g_string_append_printf(localOutputContents,"\n\t\t{\n\t\t\t");
@@ -3438,7 +3457,7 @@ gboolean sendDiscoveryResult(const char* outfilename)
                 selfDeviceDiscovered=TRUE;
                 g_message("Self Discovery Success %s",ownSerialNo->str);
             }
-            if((disConf->enableGwSetup == TRUE) && ((firstXG1GwData == TRUE) || (firstXG2GwData == TRUE)) && (gwdata->isgateway == TRUE) && (checkvalidhostname(gwdata->dnsconfig->str) == TRUE ) && (checkvalidhostname(gwdata->etchosts->str) == TRUE) && (checkvalidip(gwdata->gwyip->str) == TRUE) && (checkvalidip(gwdata->gwyipv6->str) == TRUE))
+            if((disConf->enableGwSetup == TRUE) && (gwdata->isgateway == TRUE) && (checkvalidhostname(gwdata->dnsconfig->str) == TRUE ) && (checkvalidhostname(gwdata->etchosts->str) == TRUE) && (checkvalidip(gwdata->gwyip->str) == TRUE) && (checkvalidip(gwdata->gwyipv6->str) == TRUE))
             {
 
 #ifdef ENABLE_ROUTE
@@ -3457,15 +3476,6 @@ gboolean sendDiscoveryResult(const char* outfilename)
                 system(GwRouteParam->str);
                 g_string_free(GwRouteParam,TRUE);
                 gwdata->isRouteSet = TRUE;
-                if(firstXG1GwData == TRUE)
-                {
-                    firstXG1GwData=FALSE;
-                }
-                else if(firstXG2GwData == TRUE)
-                {
-
-                    firstXG2GwData=FALSE;
-                }
 #endif
                 if (g_strrstr(g_strstrip(gwdata->ipv6prefix->str),"null") ||  ! *(gwdata->ipv6prefix->str))
                 {
@@ -3495,8 +3505,8 @@ gboolean sendDiscoveryResult(const char* outfilename)
             element = g_list_next(element);
             if (element) g_string_append_printf(localOutputContents, ",");
         }
-	if(element)
-          g_list_free(element);
+    if(element_root)
+          g_list_free(element_root);
     if(xdevlistDup)
         g_list_free(xdevlistDup);
     }
@@ -3563,6 +3573,7 @@ gboolean sendDiscoveryResult(const char* outfilename)
     // isMediaClientConnected is unused if BROADBAND is not defined.
     (void)(isMediaClientConnected);
 #endif
+    g_string_free(logDevicesList, TRUE);
 
     return TRUE;
 }
@@ -4035,6 +4046,7 @@ static void on_last_change (GUPnPServiceProxy *sproxy, const char  *variable_nam
                 if (g_strcmp0(g_strstrip((gchar*)variable_name),"IPSubNet") == 0)
                 {
                     updated_value = g_value_get_string(value);
+		    if(updated_value == NULL) return;
                     g_message("Updated value is %s ", updated_value);
                     if(g_strcmp0(g_strstrip((gchar*)updated_value),gwdata->ipSubNet->str) != 0)
                     {
@@ -4580,13 +4592,15 @@ gchar *getmacaddress(const gchar *ifname)
     unsigned char *mac;
     GString *data = g_string_new("00:00:00:00:00:00");
 
-    if(data == NULL || ifname == NULL)
-        return NULL;
+    if(data == NULL || ifname == NULL) {
+         if(data) g_string_free(data, TRUE);
+	 return NULL;
+    }
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
         g_message("socket failed\n");
-        return data->str;
+        return g_string_free(data, FALSE);
     }
     ifr.ifr_addr.sa_family = AF_INET;
     strncpy(ifr.ifr_name , ifname , IFNAMSIZ - 1);
@@ -4595,7 +4609,7 @@ gchar *getmacaddress(const gchar *ifname)
     {
        g_message(" ioctl is failed\n");
        close(fd); 
-       return data->str;
+       return g_string_free(data, FALSE);
     }
     close(fd);   //CID:18597 , 158830- negative returns
     mac = (unsigned char *)ifr.ifr_hwaddr.sa_data;
@@ -4603,5 +4617,5 @@ gchar *getmacaddress(const gchar *ifname)
     //g_print("Mac : %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n" , mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     g_string_printf(data, "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x", mac[0], mac[1], mac[2],
                     mac[3], mac[4], mac[5]);
-    return data->str;
+    return g_string_free(data, FALSE);
 }
