@@ -76,6 +76,8 @@ xcal_device_LDADD = $(top_builddir)/broadband/lib/libxdevice.la
 if RDKB_INTER_DEVICE_MANAGER_SUPPORT
 lib_LTLIBRARIES = libupnpidm.la
 libupnpidm_la_SOURCES = idm_server.c idm_client.c idm_library.c
+libupnpidm_la_CFLAGS = $(AM_CFLAGS) -DFEATURE_SUPPORT_RDKLOG
+libupnpidm_la_LIBADD = -lrdkloggers -lccsp_common
 endif
 endif
 if VIDEO_SUPPORT
