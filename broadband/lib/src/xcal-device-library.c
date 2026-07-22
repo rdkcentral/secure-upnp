@@ -1014,7 +1014,7 @@ gboolean gettimezone(void)
         /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
         g_clear_error(&error);
     }
-
+    g_free(dsgproxyfile);
     return result;
 }
 
@@ -2105,17 +2105,17 @@ GString *getID( const gchar *id )
         0; // to limit the logging if the user doesnt activate for long time
     GString *jsonData = g_string_new(NULL);
     GString *value = g_string_new(NULL);
-
+    size_t bytes_read = 0;
     FILE *fp = NULL;
     if((fp = v_secure_popen("r", GET_DEVICEID_SCRIPT)))
     {
         char response[1024] = {0};
-        fread(response, 1, sizeof(response)-1, fp);
+        bytes_read = fread(response, 1, sizeof(response)-1, fp);
         int ret = v_secure_pclose(fp);
         if(ret != 0)
             g_message("Error in closing pipe ! : %d \n", ret);
 
-        if ((response[0] == '\0') && (counter < MAX_DEBUG_MESSAGE)) {
+        if ((response[0] == '\0') && (counter < MAX_DEBUG_MESSAGE) && bytes_read <= 0) {
             counter ++;
             g_message("No Json string found in Auth url  %s \n" ,
                       response);
@@ -2139,6 +2139,7 @@ GString *getID( const gchar *id )
             if (!isDevIdPresent) {
                 if (g_strrstr(id, PARTNER_ID)) {
                     g_message("%s not found in Json string in Auth url %s \n ", id, jsonData->str);
+		    g_string_free(jsonData, TRUE);
                     return value;
                 }
                 if (counter < MAX_DEBUG_MESSAGE ) {
@@ -2206,6 +2207,7 @@ gboolean updatesystemids(void)
             /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
             g_clear_error(&error);
         }
+	g_free(diagfile);
         return result;
     }
 }
@@ -2301,9 +2303,11 @@ gboolean parseipv6prefix(void)
                         if (g_strrstr(g_strstrip(prefixtokens[prefixloopvar]), "/AddrPrefix")) {
                             prefixmatch = TRUE;
                             result = TRUE;
-                            g_string_printf(ipv6prefix, "%s", prefixtokens[prefixloopvar - 1]);
-                            g_message("ipv6 prefix format in the file %s",
-                                      prefixtokens[prefixloopvar - 1]);
+			    if(prefixloopvar >0) {
+                                g_string_printf(ipv6prefix, "%s", prefixtokens[prefixloopvar - 1]);
+                                g_message("ipv6 prefix format in the file %s",
+                                                         prefixtokens[prefixloopvar - 1]);
+			    }
                             break;
                         }
                         prefixloopvar++;
@@ -2359,6 +2363,8 @@ gboolean readconffile(const char *configfile)
     GError *error = NULL;
     /* Create a new GKeyFile object and a bitwise list of flags. */
     keyfile = g_key_file_new ();
+    if(keyfile == NULL)
+	    return FALSE;
     flags = G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS;
     /* Load the GKeyFile from keyfile.conf or return. */
     if (!g_key_file_load_from_file (keyfile, configfile, flags, &error)) {
@@ -2790,6 +2796,7 @@ gboolean getetchosts(void)
         /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
         g_clear_error(&error);
     }
+    g_free(etchostsfile);
     return result;
 }
 
@@ -2899,8 +2906,10 @@ gboolean parsednsconfig(void)
     gboolean                result = FALSE;
     gchar *dnsconfigfile = NULL;
     GString *strdnsconfig = g_string_new(NULL);
+
     if (devConf->dnsFile == NULL) {
         g_warning("dnsconfig file name not found in config");
+	g_string_free(strdnsconfig, TRUE);
         return result;
     }
     result = g_file_get_contents (devConf->dnsFile, &dnsconfigfile, NULL, &error);
@@ -2925,7 +2934,6 @@ gboolean parsednsconfig(void)
             }
         }
         g_string_assign(dnsconfig, strdnsconfig->str);
-        g_string_free(strdnsconfig, TRUE);
         g_message("DNS Config is %s", dnsconfig->str);
         g_strfreev(tokens);
     }
@@ -2933,6 +2941,8 @@ gboolean parsednsconfig(void)
         /* g_clear_error() frees the GError *error memory and reset pointer if set in above operation */
         g_clear_error(&error);
     }
+    g_free(dnsconfigfile);
+    g_string_free(strdnsconfig, TRUE);
     return result;
 }
 
@@ -2954,6 +2964,7 @@ gchar *getmacaddress(const gchar *ifname)
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0)
     {
+	g_string_free(data, TRUE);
         return NULL;
     }
     ifr.ifr_addr.sa_family = AF_INET;
@@ -2962,6 +2973,7 @@ gchar *getmacaddress(const gchar *ifname)
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0)
     {
         close(fd);
+	g_string_free(data, TRUE);
         return NULL;
     }
     close(fd);
@@ -2970,7 +2982,7 @@ gchar *getmacaddress(const gchar *ifname)
     //g_print("Mac : %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n" , mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     g_string_printf(data, "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x", mac[0], mac[1], mac[2],
                     mac[3], mac[4], mac[5]);
-    return data->str;
+    return g_string_free(data, FALSE);
 }
 
 /**
