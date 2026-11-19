@@ -13,6 +13,6 @@ for runtime in libgcrypt.so.20 libgpg-error.so.0; do
 done
 
 echo "WARNING: creating link-only platform stubs for Coverity/native CI; the resulting binary is not runnable" >&2
-for library in hal_moca hal_msomgmt cm_mgnt lmapi hal_ethsw telemetry_msgsender; do
+for library in syscfg hal_platform sysevent ccsp_common rdkloggers hal_moca hal_msomgmt cm_mgnt lmapi hal_ethsw telemetry_msgsender; do
     gcc -shared -x c /dev/null -o "$HOME/usr/dummies/lib$library.so"
 done
