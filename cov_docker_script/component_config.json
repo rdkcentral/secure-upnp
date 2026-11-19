@@ -317,16 +317,6 @@
           "configure_flags": "--without-rdklogger LIBS=\"${LIBS:-} -lpthread\"",
           "make_targets": ["-C", "source", "libsecure_wrapper.la"]
         }
-      },
-      {
-        "name": "secure-upnp",
-        "repo": "https://github.com/rdkcentral/secure-upnp.git",
-        "branch": "develop",
-        "build": {
-          "type": "autotools",
-          "configure_flags": "--enable-version0.2 --enable-broadband-support --enable-rdkb-inter-device-manager-support CPPFLAGS=\"${CPPFLAGS:-} -I$HOME/usr/include/rdkb -I${BUILD_DIR:-$HOME/build}/safec/include\" LDFLAGS=\"${LDFLAGS:-} -L$HOME/usr/lib -L$HOME/usr/local/lib\" LIBS=\"${LIBS:-} $(pkg-config --libs gupnp-1.0 gssdp-1.0 gthread-2.0 gio-2.0 libxml-2.0) -lsecure_wrapper -lsafec\"",
-          "make_targets": ["-C", "src", "libupnpidm.la", "AM_LDFLAGS=", "libupnpidm_la_LIBADD="]
-        }
       }
     ]
   },
@@ -343,6 +333,10 @@
       }
     ],
     "pre_build_commands": [
+      {
+        "description": "Include native dependency metadata in the pkg-config search path",
+        "command": "export PKG_CONFIG_PATH=\"$HOME/usr/lib/pkgconfig:$HOME/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}\""
+      },
       {
         "description": "Expose the installed libgcrypt runtime to the native linker",
         "command": "crypto_library=$(gcc -print-file-name=libgcrypt.so.20); test -f \"$crypto_library\" || { echo \"ERROR: Install the native libgcrypt runtime\" >&2; exit 1; }; mkdir -p $HOME/usr/lib && ln -sfn \"$crypto_library\" $HOME/usr/lib/libgcrypt.so"
