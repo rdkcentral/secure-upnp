@@ -239,9 +239,7 @@
           "type": "commands",
           "commands": [
             "export PATH=\"$HOME/.local/bin:$PATH\"",
-            "rdk_source=\"${RDK_LIBSOUP_SOURCE:-$HOME/xer10_voice/build-scxer10/tmp/work/cortexa53-rdk-linux/libsoup-2.4/2.74.2-r0/libsoup-2.74.2}\"; test -f \"$rdk_source/meson.build\" || { echo \"ERROR: Set RDK_LIBSOUP_SOURCE to the Yocto-patched libsoup source directory\" >&2; exit 1; }",
-            "mkdir -p rdk-source && cp -a \"$rdk_source/.\" rdk-source/",
-            "meson setup build rdk-source --prefix=$HOME/usr --libdir=lib -Dgnome=false -Dintrospection=disabled -Dvapi=disabled -Dgtk_doc=false -Dtests=false -Dsysprof=disabled",
+            "meson setup build --prefix=$HOME/usr --libdir=lib -Dgnome=false -Dintrospection=disabled -Dvapi=disabled -Dgtk_doc=false -Dtests=false -Dsysprof=disabled",
             "ninja -C build -j2 all install"
           ]
         }
@@ -266,21 +264,23 @@
         }
       },
       {
-        "name": "gupnp-rdk-0.20.10",
+        "name": "gupnp-1.0.5",
         "repo": "https://github.com/GNOME/gupnp.git",
-        "branch": "gupnp-0.20.10",
+        "branch": "gupnp-1.0",
+        "header_paths": [
+          { "source": "libgupnp", "destination": "$HOME/usr/include/rdkb/libgupnp" }
+        ],
         "build": {
           "type": "commands",
           "commands": [
-            "rdk_source=\"${RDK_GUPNP_SOURCE:-$HOME/xer10_voice/build-scxer10/tmp/work/cortexa53-rdk-linux/gupnp/0.20.10-r0/gupnp-0.20.10}\"; test -f \"$rdk_source/configure\" || { echo \"ERROR: Set RDK_GUPNP_SOURCE to the Yocto-patched GUPnP source directory\" >&2; exit 1; }",
-            "mkdir -p rdk-source build && cp -a \"$rdk_source/.\" rdk-source/",
-            "sed -i 's/gssdp-1\\.2/gssdp-1.0/g' rdk-source/configure rdk-source/configure.ac rdk-source/gupnp-1.0.pc.in",
-            "cd build && ../rdk-source/configure --prefix=$HOME/usr --libdir=$HOME/usr/lib --disable-maintainer-mode --disable-introspection --disable-gtk-doc",
-            "make -C libgupnp -j2",
-            "make -C libgupnp install && make install-pkgconfigDATA"
+            "export PATH=\"$HOME/.local/bin:$PATH\"",
+            "cp --remove-destination libgupnp/guul.c subprojects/guul/guul.c",
+            "cp --remove-destination libgupnp/guul.h subprojects/guul/guul.h",
+            "meson setup build --prefix=$HOME/usr --libdir=lib -Dintrospection=false -Dvapi=false -Dexamples=false -Dgtk_doc=false",
+            "ninja -C build -j2 all install"
           ]
         }
-      },
+      }, 
       {
         "name": "safec",
         "repo": "https://github.com/rurban/safeclib.git",
