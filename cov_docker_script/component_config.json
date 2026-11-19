@@ -1,0 +1,388 @@
+{
+  "_comment": "Component Build Configuration for Coverity/Native Builds",
+  "_version": "2.0",
+  "_description": "Defines dependencies and build settings for the native component",
+  "dependencies": {
+    "_comment": "External repositories needed by this component",
+    "repos": [
+      {
+        "name": "rdkb-halif-platform-headers",
+        "repo": "https://github.com/rdkcentral/rdkb-halif-platform.git",
+        "branch": "develop",
+        "header_paths": [
+          { "source": "include", "destination": "$HOME/usr/include/rdkb" }
+        ]
+      },
+      {
+        "name": "rdk-cert-config",
+        "repo": "https://github.com/rdkcentral/rdk-cert-config.git",
+        "branch": "develop",
+        "header_paths": [
+          { "source": "RdkConfigApi/include", "destination": "$HOME/usr/include/rdkb" }
+        ],
+        "build": {
+          "type": "autotools"
+        }
+      },
+      {
+        "name": "common-library",
+        "repo": "https://github.com/rdkcentral/common-library.git",
+        "branch": "develop",
+        "header_paths": [
+          { "source": "source/ccsp/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/ccsp/components/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/ccsp/custom", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/cosa/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/cosa/include/linux", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/cosa/include/linux", "destination": "$HOME/usr/include/rdkb/linux" },
+          { "source": "source/cosa/package/slap/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/debug_api/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/util_api/http/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/util_api/ansc/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/ccsp/components/common/MessageBusHelper/include", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/ccsp/components/common/PoamIrepFolder", "destination": "$HOME/usr/include/rdkb" },
+          { "source": "source/dm_pack", "destination": "$HOME/usr/include/rdkb" }
+        ]
+      },
+      {
+        "name": "json-c",
+        "repo": "https://github.com/json-c/json-c.git",
+        "branch": "master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "rm -rf build && cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/usr -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DBUILD_APPS=OFF -DDISABLE_EXTRA_LIBS=ON",
+            "cmake --build build -j$(nproc)",
+            "cmake --install build"
+          ]
+        }
+      },
+      {
+        "name": "cJSON",
+        "repo": "https://github.com/DaveGamble/cJSON.git",
+        "branch": "master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/usr -DENABLE_CJSON_TEST=OFF -DBUILD_SHARED_LIBS=ON",
+            "cmake --build build -j$(nproc)",
+            "cmake --install build"
+          ]
+        }
+      },
+      {
+        "name": "msgpack-c",
+        "repo": "https://github.com/msgpack/msgpack-c.git",
+        "branch": "c_master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/usr -DMSGPACK_BUILD_TESTS=OFF -DMSGPACK_BUILD_EXAMPLES=OFF",
+            "cmake --build build -j$(nproc)",
+            "cmake --install build"
+          ]
+        }
+      },
+      {
+        "name": "rbus",
+        "repo": "https://github.com/rdkcentral/rbus.git",
+        "branch": "main",
+        "header_paths": [
+          { "source": "include", "destination": "$HOME/usr/include/rdkb/rbus" },
+          { "source": "src/rbus", "destination": "$HOME/usr/include/rdkb/rbus" },
+          { "source": "src/core", "destination": "$HOME/usr/include/rdkb/rbus" },
+          { "source": "src/rtmessage", "destination": "$HOME/usr/include/rdkb/rtmessage" }
+        ],
+        "build": {
+          "type": "cmake",
+          "build_dir": "build",
+          "cmake_flags": "-DCMAKE_INSTALL_PREFIX=$HOME/usr -DCMAKE_PREFIX_PATH=/usr -DBUILD_FOR_DESKTOP=ON -DCMAKE_BUILD_TYPE=Debug -DMSGPACK_LIBRARIES=$HOME/usr/lib/libmsgpack-c.so -DMSGPACK_INCLUDE_DIRS=$HOME/usr/include"
+        }
+      },
+      {
+        "name": "Utopia-headers",
+        "repo": "https://github.com/rdkcentral/utopia.git",
+        "branch": "main",
+        "header_paths": [
+          { "source": "source/include/sysevent", "destination": "$HOME/usr/include/rdkb/sysevent" },
+          { "source": "source/sysevent/lib", "destination": "$HOME/usr/include/rdkb/sysevent" },
+          { "source": "source/include/syscfg", "destination": "$HOME/usr/include/rdkb/syscfg" },
+          { "source": "source/include", "destination": "$HOME/usr/include/rdkb" }
+        ]
+      },
+      {
+        "name": "WebconfigFramework",
+        "repo": "https://github.com/rdkcentral/WebconfigFramework.git",
+        "branch": "develop",
+        "header_paths": [
+          { "source": "include", "destination": "$HOME/usr/include/rdkb" }
+        ],
+        "build": {
+          "type": "autotools",
+          "configure_flags": "CPPFLAGS=\"-I$HOME/usr/include/rdkb -I$HOME/usr/local/include -I$HOME/usr/include/rdkb/rtmessage -I$HOME/usr/include/rdkb/rbus\" LDFLAGS=\"-L$HOME/usr/local/lib -L$HOME/usr/lib\" LIBS=\"-lrbus -lrtMessage\""
+        }
+      },
+      {
+        "name": "telemetry-headers",
+        "repo": "https://github.com/rdkcentral/telemetry.git",
+        "branch": "main",
+        "header_paths": [
+          { "source": "include", "destination": "$HOME/usr/include/rdkb" }
+        ]
+      },
+      {
+        "name": "libpsl",
+        "repo": "https://github.com/rockdaboot/libpsl.git",
+        "branch": "master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "git submodule update --init --recursive",
+            "export PATH=\"$HOME/.local/bin:$PATH\"",
+            "meson setup build --prefix=$HOME/usr --libdir=lib -Ddocs=false -Dtests=false",
+            "ninja -C build all install"
+          ]
+        }
+      },
+      {
+        "name": "libcurl",
+        "repo": "https://github.com/curl/curl.git",
+        "branch": "master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "autoreconf -fi",
+            "./configure --prefix=$HOME/usr --libdir=$HOME/usr/lib --disable-static --enable-shared --without-ssl --without-zlib",
+            "make -j$(nproc)",
+            "make install"
+          ]
+        }
+      },
+      {
+        "name": "libproxy",
+        "repo": "https://github.com/libproxy/libproxy.git",
+        "branch": "main",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "export PATH=\"$HOME/.local/bin:$PATH\"",
+            "meson setup build --prefix=$HOME/usr --libdir=lib -Ddocs=false -Dtests=false -Dconfig-gnome=false -Dconfig-kde=false -Dconfig-osx=false -Dconfig-windows=false -Dpacrunner-duktape=false -Dintrospection=false -Dvapi=false",
+            "ninja -C build all install"
+          ]
+        }
+      },
+      {
+        "name": "gmp",
+        "repo": "https://github.com/gmp-mirror/gmp.git",
+        "branch": "master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "sh ./.bootstrap",
+            "./configure --prefix=$HOME/usr --libdir=$HOME/usr/lib --enable-shared --disable-static",
+            "make -j2 MAKEINFO=true",
+            "make install MAKEINFO=true"
+          ]
+        }
+      },
+      {
+        "name": "nettle",
+        "repo": "https://github.com/gnutls/nettle.git",
+        "branch": "master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "sh ./.bootstrap",
+            "./configure --prefix=$HOME/usr --libdir=$HOME/usr/lib --enable-shared --disable-static --disable-documentation CPPFLAGS=\"${CPPFLAGS:-} -I$HOME/usr/include\" LDFLAGS=\"${LDFLAGS:-} -L$HOME/usr/lib\"",
+            "make -j2",
+            "make install",
+            "cp --remove-destination libnettle.so .lib/libnettle.so",
+            "cp --remove-destination libhogweed.so .lib/libhogweed.so"
+          ]
+        }
+      },
+      {
+        "name": "gnutls",
+        "repo": "https://github.com/gnutls/gnutls.git",
+        "branch": "3.8.13",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "apt-get update",
+            "apt-get install -y --no-install-recommends gettext autopoint gtk-doc-tools libtasn1-bin",
+            "./bootstrap --skip-po",
+            "./configure --prefix=$HOME/usr --libdir=$HOME/usr/lib --with-included-libtasn1 --with-included-unistring --without-p11-kit --disable-doc --disable-tools --disable-tests --disable-cxx CPPFLAGS=\"${CPPFLAGS:-} -I$HOME/usr/include\" LDFLAGS=\"${LDFLAGS:-} -L$HOME/usr/lib\"",
+            "make -j2",
+            "make install",
+            "pkg-config --modversion gnutls"
+          ]
+        }
+      },
+      {
+        "name": "glib-networking",
+        "repo": "https://github.com/GNOME/glib-networking.git",
+        "branch": "master",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "export PATH=\"$HOME/.local/bin:$PATH\"",
+            "meson setup build --prefix=$HOME/usr --libdir=lib -Dtests=false -Dgnome_proxy=disabled",
+            "ninja -C build all install"
+          ]
+        }
+      },
+      {
+        "name": "libsoup-rdk-2.74.2",
+        "repo": "https://github.com/GNOME/libsoup.git",
+        "branch": "2.74.2",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "export PATH=\"$HOME/.local/bin:$PATH\"",
+            "rdk_source=\"${RDK_LIBSOUP_SOURCE:-$HOME/xer10_voice/build-scxer10/tmp/work/cortexa53-rdk-linux/libsoup-2.4/2.74.2-r0/libsoup-2.74.2}\"; test -f \"$rdk_source/meson.build\" || { echo \"ERROR: Set RDK_LIBSOUP_SOURCE to the Yocto-patched libsoup source directory\" >&2; exit 1; }",
+            "mkdir -p rdk-source && cp -a \"$rdk_source/.\" rdk-source/",
+            "meson setup build rdk-source --prefix=$HOME/usr --libdir=lib -Dgnome=false -Dintrospection=disabled -Dvapi=disabled -Dgtk_doc=false -Dtests=false -Dsysprof=disabled",
+            "ninja -C build -j2 all install"
+          ]
+        }
+      },
+      {
+        "name": "gssdp-1.0.5",
+        "repo": "https://github.com/GNOME/gssdp.git",
+        "branch": "gssdp-1.0.5",
+        "header_paths": [
+          {
+            "source": "libgssdp",
+            "destination": "$HOME/usr/include/rdkb/gssdp"
+          }
+        ],
+        "build": {
+          "type": "commands",
+          "commands": [
+            "export PATH=\"$HOME/.local/bin:$PATH\"",
+            "meson setup build --prefix=$HOME/usr --libdir=lib -Dsniffer=false -Dintrospection=false -Dvapi=false -Dexamples=false -Dgtk_doc=false",
+            "ninja -C build all install"
+          ]
+        }
+      },
+      {
+        "name": "gupnp-rdk-0.20.10",
+        "repo": "https://github.com/GNOME/gupnp.git",
+        "branch": "gupnp-0.20.10",
+        "build": {
+          "type": "commands",
+          "commands": [
+            "rdk_source=\"${RDK_GUPNP_SOURCE:-$HOME/xer10_voice/build-scxer10/tmp/work/cortexa53-rdk-linux/gupnp/0.20.10-r0/gupnp-0.20.10}\"; test -f \"$rdk_source/configure\" || { echo \"ERROR: Set RDK_GUPNP_SOURCE to the Yocto-patched GUPnP source directory\" >&2; exit 1; }",
+            "mkdir -p rdk-source build && cp -a \"$rdk_source/.\" rdk-source/",
+            "sed -i 's/gssdp-1\\.2/gssdp-1.0/g' rdk-source/configure rdk-source/configure.ac rdk-source/gupnp-1.0.pc.in",
+            "cd build && ../rdk-source/configure --prefix=$HOME/usr --libdir=$HOME/usr/lib --disable-maintainer-mode --disable-introspection --disable-gtk-doc",
+            "make -C libgupnp -j2",
+            "make -C libgupnp install && make install-pkgconfigDATA"
+          ]
+        }
+      },
+      {
+        "name": "safec",
+        "repo": "https://github.com/rurban/safeclib.git",
+        "branch": "master",
+        "header_paths": [
+          {
+            "source": "include",
+            "destination": "$HOME/usr/include/rdkb"
+          }
+        ],
+        "build": {
+          "type": "autotools",
+          "configure_flags": "--prefix=$HOME/usr",
+          "make_targets": ["all", "install-pkgincludeHEADERS", "install-dist_pkgincludeHEADERS"]
+        }
+      },
+      {
+        "name": "rdk_logger-headers",
+        "repo": "https://github.com/rdkcentral/rdk_logger.git",
+        "branch": "develop",
+        "header_paths": [
+          { "source": "include", "destination": "$HOME/usr/include/rdkb" }
+        ]
+      },
+      {
+        "name": "libSyscallWrapper",
+        "repo": "https://github.com/rdkcentral/libSyscallWrapper.git",
+        "branch": "develop",
+        "header_paths": [
+          { "source": "source", "destination": "$HOME/usr/include/rdkb" }
+        ],
+        "build": {
+          "type": "autotools",
+          "configure_flags": "--without-rdklogger LIBS=\"${LIBS:-} -lpthread\"",
+          "make_targets": ["-C", "source", "libsecure_wrapper.la"]
+        }
+      },
+      {
+        "name": "secure-upnp",
+        "repo": "https://github.com/rdkcentral/secure-upnp.git",
+        "branch": "develop",
+        "build": {
+          "type": "autotools",
+          "configure_flags": "--enable-version0.2 --enable-broadband-support --enable-rdkb-inter-device-manager-support CPPFLAGS=\"${CPPFLAGS:-} -I$HOME/usr/include/rdkb -I${BUILD_DIR:-$HOME/build}/safec/include\" LDFLAGS=\"${LDFLAGS:-} -L$HOME/usr/lib -L$HOME/usr/local/lib\" LIBS=\"${LIBS:-} $(pkg-config --libs gupnp-1.0 gssdp-1.0 gthread-2.0 gio-2.0 libxml-2.0) -lsecure_wrapper -lsafec\"",
+          "make_targets": ["-C", "src", "libupnpidm.la", "AM_LDFLAGS=", "libupnpidm_la_LIBADD="]
+        }
+      }
+    ]
+  },
+  "native_component": {
+    "_comment": "Configuration for the main component being built",
+    "name": "xupnp",
+    "include_path": "$HOME/usr/include/rdkb/",
+    "lib_output_path": "$HOME/usr/local/lib/",
+    "source_patches": [
+      {
+        "file": "$HOME/usr/include/rdkb/ccsp_message_bus.h",
+        "search": "    DBusLoop *loop;",
+        "replace": "    struct DBusLoop *loop;"
+      }
+    ],
+    "pre_build_commands": [
+      {
+        "description": "Expose the installed libgcrypt runtime to the native linker",
+        "command": "crypto_library=$(gcc -print-file-name=libgcrypt.so.20); test -f \"$crypto_library\" || { echo \"ERROR: Install the native libgcrypt runtime\" >&2; exit 1; }; mkdir -p $HOME/usr/lib && ln -sfn \"$crypto_library\" $HOME/usr/lib/libgcrypt.so"
+      },
+      {
+        "description": "Expose the installed libgpg-error runtime to the native linker",
+        "command": "crypto_library=$(gcc -print-file-name=libgpg-error.so.0); test -f \"$crypto_library\" || { echo \"ERROR: Install the native libgpg-error runtime\" >&2; exit 1; }; mkdir -p $HOME/usr/lib && ln -sfn \"$crypto_library\" $HOME/usr/lib/libgpg-error.so"
+      },
+      {
+        "description": "WARNING: creating link-only platform stubs for Coverity/native CI; the resulting binary is not runnable",
+        "command": "mkdir -p $HOME/usr/dummies"
+      },
+      {
+        "description": "Creating link-only syscfg stub",
+        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libsyscfg.so"
+      },
+      {
+        "description": "Creating link-only platform HAL stub",
+        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libhal_platform.so"
+      },
+      {
+        "description": "Creating link-only MoCA, MSO management, cable management, LMAPI, and Ethernet switch stubs",
+        "command": "for library in hal_moca hal_msomgmt cm_mgnt lmapi hal_ethsw; do gcc -shared -x c /dev/null -o \"$HOME/usr/dummies/lib$library.so\" || exit 1; done"
+      },
+      {
+        "description": "Creating link-only sysevent stub",
+        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libsysevent.so"
+      },
+      {
+        "description": "Creating link-only CCSP common stub",
+        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libccsp_common.so"
+      },
+      {
+        "description": "Creating link-only RDK logger stub",
+        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/librdkloggers.so"
+      }
+    ],
+    "build": {
+      "type": "autotools",
+      "configure_options_file": "cov_docker_script/configure_options.conf"
+      }
+  }
+}
