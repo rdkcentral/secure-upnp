@@ -341,40 +341,8 @@
         "command": "export PKG_CONFIG_PATH=\"$HOME/usr/lib/pkgconfig:$HOME/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}\""
       },
       {
-        "description": "Expose the installed libgcrypt runtime to the native linker",
-        "command": "crypto_library=$(gcc -print-file-name=libgcrypt.so.20); test -f \"$crypto_library\" || { echo \"ERROR: Install the native libgcrypt runtime\" >&2; exit 1; }; mkdir -p $HOME/usr/lib && ln -sfn \"$crypto_library\" $HOME/usr/lib/libgcrypt.so"
-      },
-      {
-        "description": "Expose the installed libgpg-error runtime to the native linker",
-        "command": "crypto_library=$(gcc -print-file-name=libgpg-error.so.0); test -f \"$crypto_library\" || { echo \"ERROR: Install the native libgpg-error runtime\" >&2; exit 1; }; mkdir -p $HOME/usr/lib && ln -sfn \"$crypto_library\" $HOME/usr/lib/libgpg-error.so"
-      },
-      {
-        "description": "WARNING: creating link-only platform stubs for Coverity/native CI; the resulting binary is not runnable",
-        "command": "mkdir -p $HOME/usr/dummies"
-      },
-      {
-        "description": "Creating link-only syscfg stub",
-        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libsyscfg.so"
-      },
-      {
-        "description": "Creating link-only platform HAL stub",
-        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libhal_platform.so"
-      },
-      {
-        "description": "Creating link-only MoCA, MSO management, cable management, LMAPI, and Ethernet switch stubs",
-        "command": "for library in hal_moca hal_msomgmt cm_mgnt lmapi hal_ethsw; do gcc -shared -x c /dev/null -o \"$HOME/usr/dummies/lib$library.so\" || exit 1; done"
-      },
-      {
-        "description": "Creating link-only sysevent stub",
-        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libsysevent.so"
-      },
-      {
-        "description": "Creating link-only CCSP common stub",
-        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/libccsp_common.so"
-      },
-      {
-        "description": "Creating link-only RDK logger stub",
-        "command": "gcc -shared -x c /dev/null -o $HOME/usr/dummies/librdkloggers.so"
+        "description": "Prepare crypto runtime links and analysis-only platform stubs",
+        "command": "bash cov_docker_script/prepare_native_link.sh"
       }
     ],
     "build": {
