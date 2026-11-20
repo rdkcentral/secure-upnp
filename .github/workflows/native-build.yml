@@ -22,7 +22,7 @@ jobs:
           # Trust the workspace
           git config --global --add safe.directory '*'
           # Pull the latest changes for the native build system
-          git submodule update --init --recursive --remote
+          git clone --branch develop --single-branch https://github.com/rdkcentral/build_tools_workflows.git build_tools_workflows
           # Build and install dependencies
           chmod +x build_tools_workflows/cov_docker_script/setup_dependencies.sh
           ./build_tools_workflows/cov_docker_script/setup_dependencies.sh ./cov_docker_script/component_config.json
