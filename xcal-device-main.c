@@ -1561,6 +1561,7 @@ main (int argc, char **argv)
     {
         g_message("Failed to update the required gupnp xcal-device variables");
     }
+    printf("Test coverity workflow: %s\n");
 
     g_message("xmlfilename=%s struuid=%s serial_Num=%s",devXMlFile,uUid,serial_Num);
     g_message("devBcastIf=%sdevBcastPort=%d",devBcastIf,devBcastPort);
