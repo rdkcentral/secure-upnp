@@ -84,22 +84,6 @@
         }
       },
       {
-        "name": "rbus",
-        "repo": "https://github.com/rdkcentral/rbus.git",
-        "branch": "main",
-        "header_paths": [
-          { "source": "include", "destination": "$HOME/usr/include/rdkb/rbus" },
-          { "source": "src/rbus", "destination": "$HOME/usr/include/rdkb/rbus" },
-          { "source": "src/core", "destination": "$HOME/usr/include/rdkb/rbus" },
-          { "source": "src/rtmessage", "destination": "$HOME/usr/include/rdkb/rtmessage" }
-        ],
-        "build": {
-          "type": "cmake",
-          "build_dir": "build",
-          "cmake_flags": "-DCMAKE_INSTALL_PREFIX=$HOME/usr -DCMAKE_PREFIX_PATH=/usr -DBUILD_FOR_DESKTOP=ON -DCMAKE_BUILD_TYPE=Debug -DMSGPACK_LIBRARIES=$HOME/usr/lib/libmsgpack-c.so -DMSGPACK_INCLUDE_DIRS=$HOME/usr/include"
-        }
-      },
-      {
         "name": "Utopia-headers",
         "repo": "https://github.com/rdkcentral/utopia.git",
         "branch": "main",
@@ -109,18 +93,6 @@
           { "source": "source/include/syscfg", "destination": "$HOME/usr/include/rdkb/syscfg" },
           { "source": "source/include", "destination": "$HOME/usr/include/rdkb" }
         ]
-      },
-      {
-        "name": "WebconfigFramework",
-        "repo": "https://github.com/rdkcentral/WebconfigFramework.git",
-        "branch": "develop",
-        "header_paths": [
-          { "source": "include", "destination": "$HOME/usr/include/rdkb" }
-        ],
-        "build": {
-          "type": "autotools",
-          "configure_flags": "CPPFLAGS=\"-I$HOME/usr/include/rdkb -I$HOME/usr/local/include -I$HOME/usr/include/rdkb/rtmessage -I$HOME/usr/include/rdkb/rbus\" LDFLAGS=\"-L$HOME/usr/local/lib -L$HOME/usr/lib\" LIBS=\"-lrbus -lrtMessage\""
-        }
       },
       {
         "name": "telemetry-headers",
@@ -226,7 +198,7 @@
           "type": "commands",
           "commands": [
             "export PATH=\"$HOME/.local/bin:$PATH\"",
-            "meson setup build --prefix=$HOME/usr --libdir=lib -Dtests=false -Dgnome_proxy=disabled",
+            "meson setup build --prefix=$HOME/usr --libdir=lib -Dglib:tests=false -Dtests=false -Dgnome_proxy=disabled",
             "ninja -C build all install"
           ]
         }
