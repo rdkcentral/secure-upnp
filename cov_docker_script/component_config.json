@@ -84,6 +84,25 @@
         }
       },
       {
+        "name": "Utopia-headers",
+        "repo": "https://github.com/rdkcentral/utopia.git",
+        "branch": "main",
+        "header_paths": [
+          { "source": "source/include/sysevent", "destination": "$HOME/usr/include/rdkb/sysevent" },
+          { "source": "source/sysevent/lib", "destination": "$HOME/usr/include/rdkb/sysevent" },
+          { "source": "source/include/syscfg", "destination": "$HOME/usr/include/rdkb/syscfg" },
+          { "source": "source/include", "destination": "$HOME/usr/include/rdkb" }
+        ]
+      },
+      {
+        "name": "telemetry-headers",
+        "repo": "https://github.com/rdkcentral/telemetry.git",
+        "branch": "main",
+        "header_paths": [
+          { "source": "include", "destination": "$HOME/usr/include/rdkb" }
+        ]
+      },
+      {
         "name": "libpsl",
         "repo": "https://github.com/rockdaboot/libpsl.git",
         "branch": "master",
